@@ -2,7 +2,9 @@
 
 Standalone HTML tool for PCB stackup editing. Open index.html in a browser or use the GitHub Pages website. No installation, server, account, or external page dependency is required. This is an independent helper, not an Ansys product.
 
-v2.9 commits a copper-count change when input is finished (on change/blur), keeps Apply and Enter, and adds an immediate16-copper quick selection that preserves existing layer data. Reductions still require confirmation and support undo. All detail rows expand in the page; preview uses an explicit expand/collapse button instead of an internal vertical scrollbar. Phone-width tables still scroll horizontally to keep columns readable.
+v3.0 defaults to numbering conductor names L1,L2,... from top to bottom. Dielectric and solder-mask names remain unchanged and do not consume an L number. Naming follows count, insertion, deletion and ordering; all other layer properties stay intact. Editing a conductor name manually switches to custom mode; imported XML names are preserved unless validated editor metadata restores automatic mode. The checkbox can explicitly renumber current layers, with collision protection for nonconductor names. Naming mode is preserved in the editor XML comment and layer-count undo snapshot.
+
+Copper-count changes still commit when input is finished (on change/blur), with Apply and Enter retained and an immediate16-copper quick selection. Reductions require confirmation and support undo. All detail rows expand in the page; preview uses an explicit expand/collapse button instead of an internal vertical scrollbar. Phone-width tables still scroll horizontally to keep columns readable.
 
 The SIwave table column order, material-derived electrical values, selectable metal-layer dielectric fill, and local preview colors remain available. Basic editing and original generic presets remain intact; no company-specific stackup photo or data is included.
 

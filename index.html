@@ -833,7 +833,7 @@
         <div class="title-area">
           <h1>
             Ansys SIwave Stackup Studio Pro
-            <span class="version-tag">v2.9 Pro</span>
+            <span class="version-tag">v3.0 Pro</span>
           </h1>
           <p>專業 PCB 疊層設計、SI/PI/DC 完整模擬流程 SOP 與 XML 匯出工具</p>
         </div>
@@ -991,6 +991,10 @@
             <input type="checkbox" id="includeSolderMask" checked onchange="toggleSolderMask(this.checked)">
             包含頂層/底層綠漆防焊層 (Solder Mask)
           </label>
+          <label class="checkbox-label" style="display:flex;margin-top:0.75rem;">
+            <input type="checkbox" id="autoCopperNames" checked onchange="setAutoCopperNames(this.checked)">
+            銅層自動命名 L1、L2…（不含介質與防焊層）
+          </label>
 
         </div>
       </div>
@@ -1047,8 +1051,8 @@
         </div>
         <p id="actualLayerCountSummary" role="status" aria-live="polite" style="padding:0.6rem 1rem;font-size:0.75rem;color:var(--accent-cyan);"></p>
         <details class="field-help table-note">
-          <summary>銅層序與層名稱的差別</summary>
-          <p>「銅層序」依目前頂部至底部重算；名稱如 L12_SIG、BOTTOM 是保留的標籤，不代表銅層總數。XML 繼續使用原名稱。</p>
+          <summary>銅層名稱與編號</summary>
+          <p>啟用自動命名時，只將銅層依頂部至底部命名為 L1、L2…；介質與防焊層名稱不變。手動改銅層名稱會切換為自訂命名。匯入 XML 會保留來源名稱；可再勾選自動命名重新編號。表格、剖面與 XML 使用相同名稱。</p>
         </details>
         <details class="field-help table-note">
           <summary>材質數值、填充與顏色如何保存</summary>
@@ -1368,8 +1372,34 @@
     });
 
     let layers = [];
+    let autoCopperNames = true;
     let visualExpanded = false;
     const VISUAL_PREVIEW_LIMIT = 6;
+
+    function copperNameConflict(source = layers) {
+      const copperCount = source.filter(l => l.type === 'conductor').length;
+      const reserved = new Set(Array.from({ length: copperCount }, (_, i) => `L${i + 1}`));
+      return source.find(l => l.type !== 'conductor' && reserved.has(l.name))?.name;
+    }
+
+    function numberCopperNames() {
+      if (copperNameConflict()) return false;
+      let number = 0;
+      layers.forEach(layer => { if (layer.type === 'conductor') layer.name = `L${++number}`; });
+      return true;
+    }
+
+    function setAutoCopperNames(enabled) {
+      const conflict = enabled && copperNameConflict();
+      if (conflict) {
+        document.getElementById('autoCopperNames').checked = false;
+        showToast(`非銅層已有名稱 ${conflict}，請先改名再啟用自動命名；原資料未變更。`);
+        return;
+      }
+      autoCopperNames = enabled;
+      render();
+      showToast(enabled ? '銅層已依序命名為 L1、L2…；介質與防焊名稱不變。' : '已改為保留自訂層名稱。');
+    }
 
     function escapeMarkup(value) {
       return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1561,12 +1591,13 @@
       document.getElementById('customCopperCount').value = layers.filter(l => l.type === 'conductor').length;
       document.getElementById('undoLayerCountButton').disabled = !layerCountUndo;
       document.getElementById('includeSolderMask').checked = layers.some(l => l.role === 'soldermask');
+      document.getElementById('autoCopperNames').checked = autoCopperNames;
       const factor = unit === 'mil' ? 39.3701 : 1;
       document.querySelector('#presetSelect option[value="custom"]').textContent = `自訂：${layers.filter(l => l.type === 'conductor').length} 銅層（${layers.length} 列結構）`;
       const match = Object.entries(presets).find(([, preset]) =>
         preset.length === layers.length && preset.every((p, i) => {
           const l = layers[i];
-          return ['name', 'type', 'material', 'role'].every(k => l[k] === p[k]) &&
+          return ['name', 'type', 'material', 'role'].every(k => (k === 'name' && autoCopperNames && l.type === 'conductor') || l[k] === p[k]) &&
             Math.abs(Number(l.thickness) - p.thickness * factor) < 0.00011;
         })
       );
@@ -1647,16 +1678,16 @@
       }
       if (removed.length) {
         const preview = removed.map(l => l.name).slice(0, 8).join('、');
-        if (!confirm(`將銅層由 ${current} 減為 ${target}，刪除 ${current - target} 個銅層及 ${removed.length - (current - target)} 個相鄰介質層。\n刪除項目：${preview}${removed.length > 8 ? '…' : ''}\n${target >= 2 ? '保留頂部、底部與上方其餘銅層；' : '只保留最上方銅層；'}其餘保留層的名稱、順序、材料及厚度不變。\n建議先匯出 XML 備份。是否繼續？`)) {
+        if (!confirm(`將銅層由 ${current} 減為 ${target}，刪除 ${current - target} 個銅層及 ${removed.length - (current - target)} 個相鄰介質層。\n刪除項目：${preview}${removed.length > 8 ? '…' : ''}\n${target >= 2 ? '保留頂部、底部與上方其餘銅層；' : '只保留最上方銅層；'}其餘保留層的順序、材料及厚度不變；銅層名稱依目前自動命名設定處理。\n建議先匯出 XML 備份。是否繼續？`)) {
           input.value = current;
           showLayerCountMessage('已取消減層，原有疊層未變更。');
           return;
         }
       }
-      layerCountUndo = { layers: layers.map(l => ({ ...l })), unit };
+      layerCountUndo = { layers: layers.map(l => ({ ...l })), unit, autoCopperNames };
       layers = next;
       render();
-      showLayerCountMessage(`已套用 ${target} 個銅層／${layers.length} 列結構；請以「銅層序」核對，層名稱保留不重編。保留層的資料與厚度不變；總板厚已重新加總，需要時可另按「均分」。可復原上次調整。`);
+      showLayerCountMessage(`已套用 ${target} 個銅層／${layers.length} 列結構；${autoCopperNames ? `銅層名稱已依序更新為 L1–L${target}` : '保留自訂層名稱'}。保留層的材質與厚度不變；總板厚已重新加總，需要時可另按「均分」。可復原上次調整。`);
     }
 
     function undoLayerCountChange() {
@@ -1664,6 +1695,7 @@
       if (!confirm('將還原上次層數調整前的疊層，並取代調整後對疊層的編輯。是否繼續？')) return;
       const factor = layerCountUndo.unit === unit ? 1 : (unit === 'mil' ? 39.3701 : 1 / 39.3701);
       layers = layerCountUndo.layers.map(l => ({ ...l, thickness: l.thickness * factor }));
+      autoCopperNames = layerCountUndo.autoCopperNames ?? false;
       layerCountUndo = null;
       render();
       showLayerCountMessage('已復原上次層數調整；目前長度單位保持不變。');
@@ -1697,11 +1729,16 @@
       document.getElementById('presetSelect').value = '4';
       document.getElementById('lengthUnit').value = 'mm';
       unit = 'mm';
+      autoCopperNames = true;
       applyPreset('4', false);
       showToast('已重設為 4 層板標準配置！');
     }
 
     function render() {
+      if (autoCopperNames && !numberCopperNames()) {
+        autoCopperNames = false;
+        showToast('非銅層名稱與 L 編號衝突，已保留原名稱並關閉自動命名。');
+      }
       layers.forEach((layer, index) => { layer.color = layerColor(layer, index); });
       renderTable();
       renderVisual();
@@ -1845,7 +1882,7 @@
     function generateXmlString() {
       let xml = `<?xml version="1.0" encoding="utf-8"?>\n`;
       xml += `<Stackup xmlns="http://www.ansys.com/stackup" schemaVersion="1.0">\n`;
-      const display = { colors: layers.map(layerColor), roles: layers.map(l => l.role) };
+      const display = { colors: layers.map(layerColor), roles: layers.map(l => l.role), autoCopperNames };
       xml += `  <!-- SIwaveStackupStudio ${JSON.stringify(display)} -->\n`;
       const usedMaterials = new Set();
       layers.forEach(l => {
@@ -1903,6 +1940,10 @@
       }
       if (field === 'color' && !/^#[0-9a-f]{6}$/i.test(value)) return;
       if (field === 'fillMaterial' && (layers[index].type !== 'conductor' || (value && (!Object.hasOwn(materials, value) || materials[value].conductivity)))) return;
+      if (field === 'name' && autoCopperNames && layers[index].type !== 'conductor' && /^L[1-9]\d*$/.test(value)) {
+        showToast('L 編號保留給銅層；請使用其他名稱，或先取消自動命名。'); renderTable(); return;
+      }
+      if (field === 'name' && layers[index].type === 'conductor' && value !== layers[index].name) autoCopperNames = false;
       layers[index][field] = value;
       if (field === 'type') {
         if (value === 'dielectric') { delete layers[index].fillMaterial; layers[index].role = 'dielectric'; }
@@ -2186,6 +2227,7 @@
             if (extra.length || node.children.length) throw new Error(`層 ${name} 含本工具尚未支援的屬性或粗糙度等設定；為避免遺失資料，匯入已取消`);
             return layer;
           });
+          let importedAutoCopperNames = false;
           for (const node of stackup.childNodes) {
             if (node.nodeType !== 8 || !node.data.trim().startsWith('SIwaveStackupStudio ')) continue;
             try {
@@ -2194,12 +2236,15 @@
                 if (/^#[0-9a-f]{6}$/i.test(display.colors?.[i] || '')) layer.color = display.colors[i];
                 if (['signal', 'plane', 'dielectric', 'soldermask'].includes(display.roles?.[i])) layer.role = display.roles[i];
               });
+              let ordinal = 0;
+              importedAutoCopperNames = display.autoCopperNames === true && !copperNameConflict(nextLayers) && nextLayers.every(l => l.type !== 'conductor' || l.name === `L${++ordinal}`);
             } catch { /* Display metadata is optional; physical data stays valid. */ }
           }
           const count = nextLayers.filter(l => l.type === 'conductor').length;
           if (layers.length && !confirm(`匯入將以 ${count} 個銅層／${nextLayers.length} 列結構取代目前疊層。建議先匯出 XML。是否繼續？`)) return;
           materials = nextMaterials;
           layers = nextLayers;
+          autoCopperNames = importedAutoCopperNames;
           unit = nextUnit;
           layerCountUndo = null;
           document.getElementById('lengthUnit').value = unit;

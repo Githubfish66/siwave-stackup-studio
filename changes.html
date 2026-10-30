@@ -1,6 +1,9 @@
 <!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIwave 欄位怎麼使用</title><style>*{box-sizing:border-box}body{font:17px/1.8 system-ui,"Microsoft JhengHei",sans-serif;color:#263342;background:#f4f3ee;margin:0}main{max-width:950px;margin:auto;padding:40px 20px}h1{font-size:clamp(27px,4vw,40px);line-height:1.4}h2{font-size:23px;margin-top:34px}svg{width:100%;height:auto;background:white;border:1px solid #bcc8d0;border-radius:10px}text{font-family:system-ui,"Microsoft JhengHei",sans-serif;fill:#263342;font-size:19px}a{color:#22508a;text-underline-offset:4px}p{max-width:72ch}.note{color:#52616e}</style></head><body><main>
-<h1>SIwave 的欄位，依照使用順序排好了</h1>
-<p>v2.9 的層表依照片顯示 Color、Name、Type、Thickness、Material、Conductivity、Dielectric Fill、Relative Permittivity、Loss Tangent。原來的「基本編輯」仍可切換使用。</p>
+<h1>銅層名稱，會跟著層數自動編號</h1>
+<p>v3.0 預設啟用「銅層自動命名」。選16銅層，就是 L1～L16；介質與防焊綠漆保留原名，不參與編號。選層數、增減或調整順序後，表格、剖面與 XML 同步更新。</p>
+<svg viewBox="0 0 840 290" role="img" aria-label="16銅層的命名示意：頂層防焊保留原名，銅層由L1、L2到L16；中間介質保留原名，底層防焊也保留原名。中間層以省略號表示。"><rect x="25" y="20" width="790" height="38" rx="5" fill="#dcece3"/><text x="45" y="47">TopSolderMask：頂層綠漆，不編號</text><rect x="25" y="65" width="790" height="38" rx="5" fill="#f4dfaf"/><text x="45" y="92">L1：第一個銅層</text><rect x="25" y="110" width="790" height="38" rx="5" fill="#e0e9f2"/><text x="45" y="137">Dielectric1：介質，保留原名</text><rect x="25" y="155" width="790" height="38" rx="5" fill="#f4dfaf"/><text x="45" y="182">L2 → … → L16：其他銅層依序編號</text><rect x="25" y="200" width="790" height="38" rx="5" fill="#dcece3"/><text x="45" y="227">BottomSolderMask：底層綠漆，不編號</text><text x="45" y="270">示意圖省略中間的銅層與介質層；厚度與材質不因命名而變更。</text></svg>
+<p>手動改銅層名稱時，工具會改成自訂模式，避免把你的名稱蓋掉。匯入舊 XML 也會保留原名；需要 L1～Ln 時，再勾選自動命名即可。若非銅層已占用 L 名稱，工具會提示先處理衝突。</p>
+<p>原有 SIwave 欄位與「基本編輯」切換均保留。</p>
 <h2>選16銅層，明細就跟著更新</h2>
 <p>可直接在快速預設中選「16 銅層（保留現有資料調整）」。也可輸入其他銅層數，按 Enter、按「套用層數」，或完成輸入後離開欄位，明細與 XML 就會同步更新。打到一半的數字不會立即變更疊層；減層仍需要確認。</p>
 <p>例如原本的標準4銅層、保留防焊層時，改為16銅層會得到33列結構。明細現在完整列出，不再藏在固定高度的區塊中；剖面則按「展開全部剖面」查看，再按「收合剖面」恢復摘要。</p>
