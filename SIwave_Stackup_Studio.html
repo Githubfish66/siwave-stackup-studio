@@ -724,7 +724,7 @@
       border-top: 1px solid var(--border-color);
     }
     .layer-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-    .table-container { max-height: 62vh; overflow: auto; padding: 0.5rem; scrollbar-gutter: stable; }
+    .table-container { max-height: none; overflow-x: auto; padding: 0.5rem; }
     .table-container table { min-width: 920px; table-layout: fixed; }
     .table-container th { position: sticky; top: -0.5rem; z-index: 1; }
     .table-container td { padding-top: 0.65rem; padding-bottom: 0.65rem; }
@@ -775,7 +775,7 @@
       .config-grid .copper-config { grid-column: auto; }
       .btn, .btn-icon { min-height: 44px; }
       .table-container .btn-icon { min-width: 36px; }
-      .table-container { max-height: 65vh; }
+      .table-container { max-height: none; }
       .table-container table { min-width: 960px; }
       .checkbox-label { min-height: 44px; }
       .disclosure > summary { min-height: 44px; }
@@ -800,14 +800,17 @@
     .table-container .property-value { font-family: var(--code-font); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .table-container .not-applicable { color: var(--text-muted); }
     .preview-column { position: static; grid-column: 2; grid-row: 1; }
-    .preview-column .visual-stack { max-height: 220px; }
+    .preview-column .visual-stack { max-height: none; overflow: visible; }
+    .preview-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+    #visualLayerSummary { color: var(--text-muted); font-size: 0.75rem; }
+    #toggleVisualLayers[hidden] { display: none; }
     .visual-layer .layer-color-mark { width: 12px; height: 12px; flex: 0 0 12px; border: 1px solid currentColor; border-radius: 2px; }
     @media (max-width: 1399px) {
       .editor-column { grid-row: 1; }
       .layer-editor-card { grid-row: 2; }
       .preview-column { grid-row: 3; grid-column: auto; }
       .materials-card { grid-row: 4; }
-      .preview-column .visual-stack { max-height: 360px; }
+      .preview-column .visual-stack { max-height: none; }
     }
     @media (max-width: 760px) {
       .table-view-controls { margin-left: 0; width: 100%; }
@@ -830,7 +833,7 @@
         <div class="title-area">
           <h1>
             Ansys SIwave Stackup Studio Pro
-            <span class="version-tag">v2.8 Pro</span>
+            <span class="version-tag">v2.9 Pro</span>
           </h1>
           <p>專業 PCB 疊層設計、SI/PI/DC 完整模擬流程 SOP 與 XML 匯出工具</p>
         </div>
@@ -926,6 +929,7 @@
               <option value="8_rogers">8 層板 (Rogers RO4350B 混壓高頻板)</option>
               <option value="10">10 層板 (伺服器級 2.0mm Megtron6)</option>
               <option value="12">12 層板 (高速背板 2.4mm Isola 370HR)</option>
+              <option value="count:16">16 銅層（保留現有資料調整）</option>
               <option value="custom">目前自訂疊層（下方輸入銅層數）</option>
             </select>
           </div>
@@ -934,12 +938,12 @@
           <div class="form-group copper-config">
             <label for="customCopperCount" class="form-label">自訂銅層數（不含介質／防焊層）</label>
             <div class="input-group" style="flex-wrap:wrap;">
-              <input type="number" id="customCopperCount" min="1" max="512" step="1" value="4" class="form-input" style="width:120px;" aria-describedby="customLayerHelp customLayerMessage" onkeydown="if(event.key === 'Enter') { event.preventDefault(); applyCustomLayerCount(); }">
+              <input type="number" id="customCopperCount" min="1" max="512" step="1" value="4" class="form-input" style="width:120px;" aria-describedby="customLayerHelp customLayerMessage" onchange="commitCopperCount()" onwheel="this.blur()" onkeydown="if(event.key === 'Enter') { event.preventDefault(); applyCustomLayerCount(); }">
               <button type="button" class="btn btn-primary" onclick="applyCustomLayerCount()">套用層數</button>
               <button type="button" id="undoLayerCountButton" class="btn btn-secondary" onclick="undoLayerCountChange()" disabled>復原上次層數調整</button>
             </div>
             <details class="field-help">
-              <summary>銅層數調整說明（1–512 層）</summary>
+              <summary>銅層數調整說明（1–512 層，輸入完成後自動套用）</summary>
               <p id="customLayerHelp" style="margin-top:0.5rem;">可輸入 1–512 個銅層，例如 16、24、32；奇數也可。增層保留既有資料並在底部銅層內側插入銅層＋介質，減層須確認。總厚度會隨之改變，需要時再按「均分」。一次產生上限 512，以避免誤輸入大量層使表格與預覽停頓；匯入既有 XML 不受此產生上限截斷。</p>
             </details>
             <p id="customLayerMessage" role="status" aria-live="polite" style="font-size:0.75rem;color:var(--accent-cyan);margin-top:0.35rem;"></p>
@@ -1018,7 +1022,7 @@
           </div>
         </div>
         <p class="table-help" id="tableFieldHelp">欄位依 SIwave 排列；電氣數值由所選材質帶入。需要其他數值時，可新增自訂材質再選用。左右捲動可查看完整欄位。</p>
-        <div class="table-container" tabindex="0" role="region" aria-label="疊層編輯表，可水平與垂直捲動">
+        <div class="table-container" tabindex="0" role="region" aria-label="完整疊層編輯表，窄螢幕可水平捲動">
           <table aria-label="由頂層至底層的疊層明細">
             <thead>
               <tr>
@@ -1070,6 +1074,10 @@
 
         <div class="visual-stack" id="stackupVisual">
           <!-- Layers visually rendered here -->
+        </div>
+        <div class="preview-controls">
+          <span id="visualLayerSummary" role="status" aria-live="polite"></span>
+          <button type="button" id="toggleVisualLayers" class="btn btn-secondary" aria-controls="stackupVisual" aria-expanded="false" onclick="toggleVisualLayers()">展開全部剖面</button>
         </div>
 
         <div class="legend-bar">
@@ -1360,6 +1368,8 @@
     });
 
     let layers = [];
+    let visualExpanded = false;
+    const VISUAL_PREVIEW_LIMIT = 6;
 
     function escapeMarkup(value) {
       return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1560,7 +1570,7 @@
             Math.abs(Number(l.thickness) - p.thickness * factor) < 0.00011;
         })
       );
-      document.getElementById('presetSelect').value = match ? match[0] : 'custom';
+      document.getElementById('presetSelect').value = match ? match[0] : layers.filter(l => l.type === 'conductor').length === 16 ? 'count:16' : 'custom';
     }
 
     function planLayerCountChange(target) {
@@ -1615,6 +1625,13 @@
       return { next, removed, current };
     }
 
+    function commitCopperCount() {
+      const input = document.getElementById('customCopperCount');
+      const raw = input.value.trim();
+      if (/^\d+$/.test(raw) && Number(raw) === layers.filter(l => l.type === 'conductor').length && input.getAttribute('aria-invalid') !== 'true') return;
+      applyCustomLayerCount();
+    }
+
     function applyCustomLayerCount() {
       const input = document.getElementById('customCopperCount');
       const raw = String(input.value).trim();
@@ -1658,6 +1675,12 @@
     }
 
     function applyPreset(key, confirmReplace = true) {
+      if (key === 'count:16') {
+        document.getElementById('customCopperCount').value = '16';
+        applyCustomLayerCount();
+        syncLayerCountControls();
+        return;
+      }
       if (!presets[key]) { syncLayerCountControls(); return; }
       if (confirmReplace && layers.length && !confirm('套用預設將取代目前全部疊層編輯，建議先匯出 XML。是否繼續？')) {
         syncLayerCountControls();
@@ -1751,12 +1774,18 @@
       });
     }
 
+    function toggleVisualLayers() {
+      visualExpanded = !visualExpanded;
+      renderVisual();
+    }
+
     function renderVisual() {
       const container = document.getElementById('stackupVisual');
       container.innerHTML = '';
       let copperOrdinal = 0;
 
-      layers.forEach((l, idx) => {
+      const visibleLayers = visualExpanded ? layers : layers.slice(0, VISUAL_PREVIEW_LIMIT);
+      visibleLayers.forEach((l, idx) => {
         const div = document.createElement('div');
         const isConductor = l.type === 'conductor';
         if (isConductor) copperOrdinal++;
@@ -1780,6 +1809,11 @@
         `;
         container.appendChild(div);
       });
+      const button = document.getElementById('toggleVisualLayers');
+      button.hidden = layers.length <= VISUAL_PREVIEW_LIMIT;
+      button.setAttribute('aria-expanded', String(visualExpanded));
+      button.textContent = visualExpanded ? '收合剖面' : `展開全部剖面（${layers.length} 列）`;
+      document.getElementById('visualLayerSummary').textContent = visibleLayers.length < layers.length ? `顯示前 ${visibleLayers.length} 列／共 ${layers.length} 列` : `共 ${layers.length} 列`;
     }
 
     function renderMaterials() {

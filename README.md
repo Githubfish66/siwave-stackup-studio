@@ -2,7 +2,9 @@
 
 Standalone HTML tool for PCB stackup editing. Open index.html in a browser or use the GitHub Pages website. No installation, server, account, or external page dependency is required. This is an independent helper, not an Ansys product.
 
-v2.8 adds the photographed SIwave table column order, material-derived electrical values, selectable metal-layer dielectric fill, and local preview colors. Basic editing remains available. Original generic presets remain intact; no company-specific stackup photo or data is included.
+v2.9 commits a copper-count change when input is finished (on change/blur), keeps Apply and Enter, and adds an immediate16-copper quick selection that preserves existing layer data. Reductions still require confirmation and support undo. All detail rows expand in the page; preview uses an explicit expand/collapse button instead of an internal vertical scrollbar. Phone-width tables still scroll horizontally to keep columns readable.
+
+The SIwave table column order, material-derived electrical values, selectable metal-layer dielectric fill, and local preview colors remain available. Basic editing and original generic presets remain intact; no company-specific stackup photo or data is included.
 
 Use Export XML to save edits and Import XML to continue on another device. Data is kept in the browser session and is not synchronized or uploaded by this page. Download SIwave_Stackup_Studio.html for offline use. Reloading without exporting loses unsaved changes.
 

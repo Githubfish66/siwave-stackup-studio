@@ -1,6 +1,9 @@
 <!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SIwave 欄位怎麼使用</title><style>*{box-sizing:border-box}body{font:17px/1.8 system-ui,"Microsoft JhengHei",sans-serif;color:#263342;background:#f4f3ee;margin:0}main{max-width:950px;margin:auto;padding:40px 20px}h1{font-size:clamp(27px,4vw,40px);line-height:1.4}h2{font-size:23px;margin-top:34px}svg{width:100%;height:auto;background:white;border:1px solid #bcc8d0;border-radius:10px}text{font-family:system-ui,"Microsoft JhengHei",sans-serif;fill:#263342;font-size:19px}a{color:#22508a;text-underline-offset:4px}p{max-width:72ch}.note{color:#52616e}</style></head><body><main>
 <h1>SIwave 的欄位，依照使用順序排好了</h1>
-<p>v2.8 的層表依照片顯示 Color、Name、Type、Thickness、Material、Conductivity、Dielectric Fill、Relative Permittivity、Loss Tangent。原來的「基本編輯」仍可切換使用。</p>
+<p>v2.9 的層表依照片顯示 Color、Name、Type、Thickness、Material、Conductivity、Dielectric Fill、Relative Permittivity、Loss Tangent。原來的「基本編輯」仍可切換使用。</p>
+<h2>選16銅層，明細就跟著更新</h2>
+<p>可直接在快速預設中選「16 銅層（保留現有資料調整）」。也可輸入其他銅層數，按 Enter、按「套用層數」，或完成輸入後離開欄位，明細與 XML 就會同步更新。打到一半的數字不會立即變更疊層；減層仍需要確認。</p>
+<p>例如原本的標準4銅層、保留防焊層時，改為16銅層會得到33列結構。明細現在完整列出，不再藏在固定高度的區塊中；剖面則按「展開全部剖面」查看，再按「收合剖面」恢復摘要。</p>
 <h2>選一種材質，就帶出它的電氣數值</h2>
 <svg viewBox="0 0 840 320" role="img" aria-labelledby="t d"><title id="t">材質與層設定的關係</title><desc id="d">選擇 Material，會帶出導電率、介電常數與損耗角正切。Dielectric Fill 是金屬層周圍的填充材質，與金屬本身的 Material 分開選擇。</desc><rect x="25" y="95" width="200" height="100" rx="8" fill="#e0e9f2"/><text x="45" y="132" font-weight="700">Material</text><text x="45" y="164">例如 copper</text><path d="M235 145H300M290 135L300 145L290 155" fill="none" stroke="#72859a" stroke-width="3"/><rect x="315" y="30" width="495" height="165" rx="8" fill="#dcece3"/><text x="340" y="74">Conductivity：5.8 × 10⁷ S/m</text><text x="340" y="117">Relative Permittivity：由材質決定</text><text x="340" y="160">Loss Tangent：由材質決定</text><rect x="25" y="224" width="785" height="70" rx="8" fill="#f4dfaf"/><text x="45" y="267">Dielectric Fill：另外選擇金屬周圍的介質；不改變銅本身</text></svg>
 <p>例如選 copper，導電率顯示 5.80E+7。若材質沒有定義介電常數，就顯示「—」，避免把未知值假裝成 0。需要自訂數值時，新增材質後，再於那一層選用。</p>
