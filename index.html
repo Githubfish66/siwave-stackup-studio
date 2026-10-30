@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <!-- Portable edition: all styles and scripts are embedded; no network dependency. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ansys SIwave Stackup Studio Pro | PCB 疊層設計與完整模擬流程工具</title>
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --panel-bg: #111827;
+      --card-bg: #1a2234;
+      --border-color: #2e3a52;
+      --border-light: #3b4b6b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-gold: #f59e0b;
+      --accent-gold-hover: #d97706;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #34d399;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --copper-grad: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
+      --diel-grad: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --mask-grad: linear-gradient(135deg, #065f46 0%, #047857 100%);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+      --code-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #0b1120; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+    /* Header */
+    header {
+      background-color: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 1.5rem;
+    }
+
+    .header-container {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--copper-grad);
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .title-area h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #ffffff;
+    }
+
+    .version-tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-gold);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-weight: 600;
+    }
+
+    .title-area p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn-secondary {
+      background: #1f293d;
+      color: #e2e8f0;
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: #2d3b55;
+      border-color: var(--border-light);
+      color: #ffffff;
+    }
+
+    .btn-primary {
+      background: var(--copper-grad);
+      color: #0f172a;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.45);
+    }
+
+    .btn-sop {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+      color: #c4b5fd;
+      border-color: rgba(139, 92, 246, 0.4);
+      font-weight: 700;
+    }
+    .btn-sop:hover {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(59, 130, 246, 0.4) 100%);
+      color: #ffffff;
+      border-color: rgba(139, 92, 246, 0.7);
+    }
+
+    .btn-info {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+    .btn-info:hover {
+      background: rgba(6, 182, 212, 0.25);
+    }
+
+    /* SOP Quick Banner */
+    .sop-banner {
+      background: linear-gradient(90deg, #131b2c 0%, #1e1b4b 50%, #0f172a 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.6rem 1.5rem;
+    }
+    .sop-banner-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .sop-steps-mini {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+    }
+    .sop-step-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sop-step-item:hover {
+      background: rgba(139, 92, 246, 0.25);
+      border-color: var(--accent-purple);
+      color: #fff;
+    }
+    .sop-step-item.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent-gold);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .sop-arrow {
+      color: #64748b;
+      font-size: 0.7rem;
+    }
+
+    /* Layout Grid */
+    main {
+      max-width: 1680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.75rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 352px;
+      gap: 1.5rem;
+      align-items: start;
+      flex: 1;
+    }
+
+    @media (max-width: 1399px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-col {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-gold { background: var(--accent-gold); box-shadow: 0 0 8px var(--accent-gold); }
+    .dot-cyan { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+    .dot-emerald { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+    .dot-blue { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
+    .dot-purple { background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-select {
+      background: #1a2234;
+      border: 1px solid var(--border-color);
+      color: #f3f4f6;
+      font-size: 0.8rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 7px;
+      outline: none;
+      transition: border 0.15s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: #d1d5db;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #0d131f;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      text-align: left;
+    }
+
+    th {
+      background: #161f30;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px solid rgba(46, 58, 82, 0.5);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(31, 41, 61, 0.6);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-conductor {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .badge-dielectric {
+      background: rgba(6, 182, 212, 0.18);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+    .badge-mask {
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover {
+      background: #2d3b55;
+      color: #ffffff;
+    }
+    .btn-icon-del:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--accent-red);
+    }
+    .btn-icon:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    /* Visualizer */
+    .visual-stack {
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .visual-layer {
+      flex-shrink: 0;
+      border-radius: 5px;
+      padding: 0.35rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      transition: transform 0.1s, box-shadow 0.1s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .visual-layer:hover {
+      transform: scale(1.01);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .visual-layer.conductor {
+      background: var(--copper-grad);
+      color: #0f172a;
+      font-weight: 700;
+      border-color: #f59e0b;
+    }
+    .visual-layer.dielectric {
+      background: var(--diel-grad);
+      color: #cbd5e1;
+      border-color: #334155;
+    }
+    .visual-layer.soldermask {
+      background: var(--mask-grad);
+      color: #a7f3d0;
+      border-color: #059669;
+    }
+
+    .legend-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 0.75rem;
+      margin-top: 0.75rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* Materials Grid */
+    .mat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.65rem;
+    }
+    .mat-card {
+      background: #161f30;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.6rem;
+      font-size: 0.72rem;
+    }
+    .mat-card h4 {
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* XML Box */
+    .xml-textarea {
+      width: 100%;
+      height: 240px;
+      background: #080c14;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #34d399;
+      font-family: var(--code-font);
+      font-size: 0.72rem;
+      padding: 0.75rem;
+      resize: vertical;
+      outline: none;
+      line-height: 1.4;
+      tab-size: 2;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1e293b;
+      border: 1px solid var(--border-light);
+      color: #ffffff;
+      padding: 0.65rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: #131b2c;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      max-width: 640px;
+      width: 92%;
+      padding: 1.5rem;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.85);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-box-large {
+      max-width: 920px;
+    }
+    .modal-box h3 {
+      font-size: 1.15rem;
+      color: #ffffff;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .modal-box p, .modal-box li {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .modal-box ol {
+      padding-left: 1.2rem;
+      margin: 0.75rem 0;
+    }
+    .modal-box ol li {
+      margin-bottom: 0.4rem;
+    }
+    .step-img-placeholder {
+      background: #0a0f1d;
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      font-family: var(--code-font);
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+    }
+
+    /* SOP Modal Detailed Styles */
+    .sop-flow-card {
+      background: #0b1120;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .sop-flow-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .sop-badge-step {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .step-1-badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .step-2-badge { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .step-3-badge { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .step-4-badge { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .step-5-badge { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.4); }
+    .step-6-badge { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+
+    .checklist-container {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.85rem;
+      margin-top: 1rem;
+    }
+    .checklist-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+    }
+    .checklist-row:last-child {
+      border-bottom: none;
+    }
+    .checklist-row input[type="checkbox"] {
+      margin-top: 0.2rem;
+      cursor: pointer;
+    }
+
+    /* Drag & Drop Overlay */
+    #dropZone {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      border: 4px dashed var(--accent-gold);
+      color: var(--accent-gold);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    /* Workspace: prioritize editing; disclose supporting detail on demand. */
+    :root { color-scheme: dark; }
+    .card-header { gap: 1rem; flex-wrap: wrap; }
+    .card-title { text-transform: none; letter-spacing: 0; }
+    .dot { box-shadow: none; flex-shrink: 0; }
+    .config-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+    .config-grid .form-group { min-width: 0; }
+    .config-grid .copper-config { grid-column: span 2; }
+    .form-input, .form-select { min-width: 0; min-height: 38px; }
+    .config-grid .form-select { width: 100%; }
+    .input-group { align-items: center; }
+    .input-group .btn { flex-shrink: 0; min-width: 64px; white-space: nowrap; }
+    .btn { min-height: 38px; }
+    .btn-icon { min-height: 32px; min-width: 32px; }
+    :is(button, summary, input, select, textarea, [tabindex]):focus-visible {
+      outline: 2px solid var(--accent-gold); outline-offset: 3px;
+    }
+    ::selection { background: #78551d; color: #fff; }
+    input, textarea { caret-color: var(--accent-gold); }
+    .field-help { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.5rem; }
+    summary { cursor: pointer; }
+    .field-help summary { padding: 0.25rem 0; }
+    .field-help p { max-width: 72ch; line-height: 1.7; }
+    #customLayerMessage:empty { display: none; }
+    .config-footer {
+      margin-top: 1.25rem; padding-top: 1.25rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .layer-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .table-container { max-height: 62vh; overflow: auto; padding: 0.5rem; scrollbar-gutter: stable; }
+    .table-container table { min-width: 920px; table-layout: fixed; }
+    .table-container th { position: sticky; top: -0.5rem; z-index: 1; }
+    .table-container td { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+    .table-container :is(input, select) { width: 100%; }
+    .table-container .btn-icon { min-width: 28px; }
+    .table-note { margin-top: 0.5rem; }
+    .materials-card { grid-column: 1 / -1; }
+    .preview-column { position: sticky; top: 148px; }
+    .preview-card .card-header { align-items: start; }
+    .preview-card .card-title { max-width: 19ch; line-height: 1.6; }
+    .visual-stack { max-height: min(52vh, 560px); padding: 0.75rem; gap: 0.35rem; }
+    .visual-layer { padding: 0.5rem; gap: 0.5rem; }
+    .visual-layer > div:first-child { min-width: 0; flex-wrap: wrap; gap: 0.25rem; }
+    .visual-layer > div:first-child > span { overflow-wrap: anywhere; }
+    .visual-layer > div:last-child { flex-shrink: 0; white-space: nowrap; }
+    .legend-bar { justify-content: flex-start; gap: 0.75rem; }
+    .disclosure > summary {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; list-style: none; min-height: 32px;
+    }
+    .disclosure > summary::-webkit-details-marker { display: none; }
+    .disclosure > summary::after { content: '展開 ＋'; color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; }
+    .disclosure[open] > summary::after { content: '收合 −'; }
+    .disclosure[open] > summary { margin-bottom: 1.25rem; }
+    .xml-actions { display: flex; justify-content: flex-end; margin-bottom: 0.75rem; }
+    #xmlPreview { height: 320px; }
+    @media (min-width: 1400px) and (max-height: 800px) {
+      .preview-column { position: static; }
+    }
+    @media (max-width: 1399px) {
+      .preview-column { position: static; }
+      .config-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .preview-card .card-title { max-width: none; }
+      .visual-stack { max-height: 420px; }
+    }
+    @media (max-width: 760px) {
+      header { position: static; padding: 1rem; }
+      main { padding: 1rem; gap: 1rem; }
+      .card { padding: 1rem; }
+      .panel-col { gap: 1rem; }
+      .title-area h1 { flex-wrap: wrap; font-size: 1.05rem; }
+      .brand-section { min-width: 0; }
+      .title-area { min-width: 0; }
+      .header-actions { gap: 0.5rem; }
+      .sop-banner { padding: 0.75rem 1rem; }
+      .sop-steps-mini { gap: 0.5rem; }
+      .config-grid { grid-template-columns: 1fr; }
+      .config-grid .copper-config { grid-column: auto; }
+      .btn, .btn-icon { min-height: 44px; }
+      .table-container .btn-icon { min-width: 36px; }
+      .table-container { max-height: 65vh; }
+      .table-container table { min-width: 960px; }
+      .checkbox-label { min-height: 44px; }
+      .disclosure > summary { min-height: 44px; }
+      #toast { left: 1rem; right: 1rem; bottom: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+    }
+    /* SIwave fields get the full work area instead of narrower inputs. */
+    .layer-editor-card { grid-column: 1 / -1; min-width: 0; }
+    .layer-editor-card[data-view="siwave"] .basic-only,
+    .layer-editor-card[data-view="basic"] .siwave-only { display: none; }
+    .layer-editor-card[data-view="siwave"] table { min-width: 1280px; }
+    .layer-editor-card[data-view="basic"] table { min-width: 920px; }
+    .table-view-controls { margin-left: auto; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .table-view-controls [aria-pressed="true"] { color: #fcd34d; border-color: var(--accent-gold); background: #342b1a; }
+    .table-help { color: var(--text-muted); font-size: 0.8rem; margin: 0 0 1rem; max-width: 85ch; }
+    .table-container { scroll-padding-top: 72px; }
+    .table-container th { white-space: normal; font-size: 0.75rem; line-height: 1.55; }
+    .table-container th small { font-weight: normal; }
+    .table-container input[type="color"] { width: 36px; height: 36px; padding: 3px; cursor: pointer; }
+    .table-container .property-value { font-family: var(--code-font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .table-container .not-applicable { color: var(--text-muted); }
+    .preview-column { position: static; grid-column: 2; grid-row: 1; }
+    .preview-column .visual-stack { max-height: 220px; }
+    .visual-layer .layer-color-mark { width: 12px; height: 12px; flex: 0 0 12px; border: 1px solid currentColor; border-radius: 2px; }
+    @media (max-width: 1399px) {
+      .editor-column { grid-row: 1; }
+      .layer-editor-card { grid-row: 2; }
+      .preview-column { grid-row: 3; grid-column: auto; }
+      .materials-card { grid-row: 4; }
+      .preview-column .visual-stack { max-height: 360px; }
+    }
+    @media (max-width: 760px) {
+      .table-view-controls { margin-left: 0; width: 100%; }
+      .table-container input[type="color"] { width: 40px; height: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Drag and drop zone overlay -->
+  <div id="dropZone">
+    <span>📂 拖放 SIwave Stackup XML 檔案至此處立即匯入</span>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="logo-badge">SI</div>
+        <div class="title-area">
+          <h1>
+            Ansys SIwave Stackup Studio Pro
+            <span class="version-tag">v2.8 Pro</span>
+          </h1>
+          <p>專業 PCB 疊層設計、SI/PI/DC 完整模擬流程 SOP 與 XML 匯出工具</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- SOP Guide Modal Trigger -->
+        <button onclick="openSopModal()" class="btn btn-sop">
+          🧭 完整模擬流程 SOP & 檢查清單
+        </button>
+
+        <!-- Import XML -->
+        <label class="btn btn-secondary">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          匯入 XML
+          <input type="file" id="importXmlInput" accept=".xml" style="display:none" onchange="handleImportXml(event)">
+        </label>
+
+        <!-- Copy XML -->
+        <button onclick="copyXmlToClipboard()" class="btn btn-secondary">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          複製代碼
+        </button>
+
+        <!-- Help Modal -->
+        <button onclick="openHelpModal()" class="btn btn-info">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          SIwave 匯入教學
+        </button>
+
+        <!-- Export XML -->
+        <button onclick="exportXmlFile()" class="btn btn-primary">
+          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          匯出 SIwave XML
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SOP Workflow Quick Navigation Banner -->
+  <div class="sop-banner">
+    <div class="sop-banner-inner">
+      <div style="font-size: 0.75rem; font-weight: 700; color: #a78bfa; display: flex; align-items: center; gap: 0.4rem;">
+        <span>🎯 SIwave 6 大標準模擬階段：</span>
+      </div>
+      <div class="sop-steps-mini">
+        <span class="sop-step-item active" onclick="openSopModalStep(1)">1. 疊層與板材 (當前)</span>
+        <span class="sop-arrow">➔</span>
+        <span class="sop-step-item" onclick="openSopModalStep(2)">2. Net 分類與電壓</span>
+        <span class="sop-arrow">➔</span>
+        <span class="sop-step-item" onclick="openSopModalStep(3)">3. RLC/去耦模型</span>
+        <span class="sop-arrow">➔</span>
+        <span class="sop-step-item" onclick="openSopModalStep(4)">4. DRC/粗糙度</span>
+        <span class="sop-arrow">➔</span>
+        <span class="sop-step-item" onclick="openSopModalStep(5)">5. Port/VRM 埠</span>
+        <span class="sop-arrow">➔</span>
+        <span class="sop-step-item" onclick="openSopModalStep(6)">6. 求解器執行</span>
+      </div>
+      <div>
+        <button onclick="openSopModal()" style="background:transparent; border:none; color:var(--accent-cyan); font-size:0.75rem; cursor:pointer; font-weight:600;">
+          查看完整手冊 ❯
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid Layout -->
+  <main>
+    <!-- Left Column: Controls & Layer Table -->
+    <div class="panel-col editor-column">
+      
+      <!-- Card 1: Preset & Global Configuration -->
+      <div class="card config-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="dot dot-gold"></span>
+            1. 快速預設與總體配置
+          </h2>
+          <button onclick="resetToDefault()" class="btn-icon" title="重置為初始狀態">↺ 重設</button>
+        </div>
+
+        <div class="form-grid config-grid">
+          <!-- Preset selector -->
+          <div class="form-group">
+            <label for="presetSelect" class="form-label">快速銅層預設 (Preset)</label>
+            <select id="presetSelect" onchange="applyPreset(this.value)" class="form-select">
+              <option value="2">2 層板 (Single Core 1.6mm)</option>
+              <option value="4" selected>4 層板 (標準 SIG-GND-PWR-SIG 1.6mm)</option>
+              <option value="4_highspeed">4 層板 (高速微帶線 1.0mm)</option>
+              <option value="6">6 層板 (標準 SIG-GND-SIG-SIG-PWR-SIG 1.6mm)</option>
+              <option value="6_hdi">6 層板 (高密度 GND-SIG-PWR-GND-SIG-GND 1.6mm)</option>
+              <option value="8">8 層板 (標準高速 1.6mm)</option>
+              <option value="8_rogers">8 層板 (Rogers RO4350B 混壓高頻板)</option>
+              <option value="10">10 層板 (伺服器級 2.0mm Megtron6)</option>
+              <option value="12">12 層板 (高速背板 2.4mm Isola 370HR)</option>
+              <option value="custom">目前自訂疊層（下方輸入銅層數）</option>
+            </select>
+          </div>
+
+          <!-- Copper count excludes dielectric and solder mask rows. -->
+          <div class="form-group copper-config">
+            <label for="customCopperCount" class="form-label">自訂銅層數（不含介質／防焊層）</label>
+            <div class="input-group" style="flex-wrap:wrap;">
+              <input type="number" id="customCopperCount" min="1" max="512" step="1" value="4" class="form-input" style="width:120px;" aria-describedby="customLayerHelp customLayerMessage" onkeydown="if(event.key === 'Enter') { event.preventDefault(); applyCustomLayerCount(); }">
+              <button type="button" class="btn btn-primary" onclick="applyCustomLayerCount()">套用層數</button>
+              <button type="button" id="undoLayerCountButton" class="btn btn-secondary" onclick="undoLayerCountChange()" disabled>復原上次層數調整</button>
+            </div>
+            <details class="field-help">
+              <summary>銅層數調整說明（1–512 層）</summary>
+              <p id="customLayerHelp" style="margin-top:0.5rem;">可輸入 1–512 個銅層，例如 16、24、32；奇數也可。增層保留既有資料並在底部銅層內側插入銅層＋介質，減層須確認。總厚度會隨之改變，需要時再按「均分」。一次產生上限 512，以避免誤輸入大量層使表格與預覽停頓；匯入既有 XML 不受此產生上限截斷。</p>
+            </details>
+            <p id="customLayerMessage" role="status" aria-live="polite" style="font-size:0.75rem;color:var(--accent-cyan);margin-top:0.35rem;"></p>
+          </div>
+
+          <!-- Unit Selector -->
+          <div class="form-group">
+            <label for="lengthUnit" class="form-label">長度單位 (LengthUnit)</label>
+            <select id="lengthUnit" onchange="changeUnit(this.value)" class="form-select">
+              <option value="mm" selected>公釐 (mm)</option>
+              <option value="mil">密爾 (mil)</option>
+            </select>
+          </div>
+
+          <!-- Global Dielectric Material -->
+          <div class="form-group">
+            <label for="globalMaterial" class="form-label">主要板材 (Base Material)</label>
+            <select id="globalMaterial" onchange="applyGlobalMaterial(this.value)" class="form-select">
+              <option value="FR4_epoxy">FR4_epoxy (Dk=4.4, Df=0.02)</option>
+              <option value="Rogers_RO4350B">Rogers RO4350B (Dk=3.66, Df=0.0037)</option>
+              <option value="Rogers_RO4003C">Rogers RO4003C (Dk=3.55, Df=0.0027)</option>
+              <option value="Megtron6">Panasonic Megtron6 (Dk=3.7, Df=0.002)</option>
+              <option value="Megtron7">Panasonic Megtron7 (Dk=3.35, Df=0.0015)</option>
+              <option value="Isola_370HR">Isola 370HR (Dk=3.92, Df=0.022)</option>
+              <option value="Isola_FR408HR">Isola FR408HR (Dk=3.68, Df=0.009)</option>
+              <option value="Shengyi_S1000_2">Shengyi S1000-2 (Dk=4.3, Df=0.015)</option>
+            </select>
+          </div>
+
+          <!-- Target Board Thickness & Auto Distribute -->
+          <div class="form-group">
+            <label for="targetTotalThick" class="form-label">目標總板厚 (<span class="unit-label">mm</span>)</label>
+            <div class="input-group">
+              <input type="number" id="targetTotalThick" step="0.05" value="1.6" class="form-input" style="flex:1;">
+              <button onclick="autoDistributeDielectrics()" class="btn btn-secondary" style="padding:0.4rem 0.6rem; font-size:0.75rem;" title="自動均分介電層厚度以達到目標總板厚">
+                均分
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solder Mask & Layer Buttons -->
+        <div class="config-footer">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeSolderMask" checked onchange="toggleSolderMask(this.checked)">
+            包含頂層/底層綠漆防焊層 (Solder Mask)
+          </label>
+
+        </div>
+      </div>
+
+
+
+
+    </div>
+
+      <!-- Card 2: Layer Stack Editor Table -->
+      <div class="card layer-editor-card" data-view="siwave">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="dot dot-cyan"></span>
+            2. 疊層明細清單 (由頂層至底層)
+          </h2>
+          <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--code-font);">
+            共 <span id="conductorLayerCount" style="color:var(--accent-gold); font-weight:700;">4</span> 個銅箔層 / 
+            <span id="totalLayerCount" style="color:#fff; font-weight:700;">9</span> 層結構
+          </span>
+        </div>
+
+        <div class="layer-toolbar">
+          <button onclick="addConductorLayer()" class="btn btn-secondary" style="color:var(--accent-gold);">+ 增加導體層 (Copper)</button>
+          <button onclick="addDielectricLayer()" class="btn btn-secondary" style="color:var(--accent-cyan);">+ 增加介質層 (Dielectric)</button>
+          <div class="table-view-controls" role="group" aria-label="表格欄位模式">
+            <button id="siwaveViewButton" class="btn btn-secondary" aria-pressed="true" onclick="setTableView('siwave')">SIwave 欄位</button>
+            <button id="basicViewButton" class="btn btn-secondary" aria-pressed="false" onclick="setTableView('basic')">基本編輯</button>
+          </div>
+        </div>
+        <p class="table-help" id="tableFieldHelp">欄位依 SIwave 排列；電氣數值由所選材質帶入。需要其他數值時，可新增自訂材質再選用。左右捲動可查看完整欄位。</p>
+        <div class="table-container" tabindex="0" role="region" aria-label="疊層編輯表，可水平與垂直捲動">
+          <table aria-label="由頂層至底層的疊層明細">
+            <thead>
+              <tr>
+                <th class="siwave-only" style="width:64px;" scope="col">Color</th>
+                <th style="width:176px;" scope="col">Name<br><small>層名稱</small></th>
+                <th style="width:124px;" scope="col">Type<br><small>類型</small></th>
+                <th style="width:108px;" scope="col">Thickness<br><small>(<span class="unit-label">mm</span>)</small></th>
+                <th style="width:160px;" scope="col">Material<br><small>材質</small></th>
+                <th class="siwave-only" style="width:130px;" scope="col">Conductivity<br><small>(S/m)</small></th>
+                <th class="siwave-only" style="width:160px;" scope="col">Dielectric Fill<br><small>介質填充</small></th>
+                <th class="siwave-only" style="width:145px;" scope="col">Relative<br>Permittivity</th>
+                <th class="siwave-only" style="width:112px;" scope="col">Loss Tangent<br><small>損耗角正切</small></th>
+                <th class="basic-only" style="width:80px;" scope="col">結構列<br>銅層序</th>
+                <th class="basic-only" style="width:145px;" scope="col">屬性角色 (Role)</th>
+                <th style="width:105px;text-align:right;" scope="col">操作</th>
+              </tr>
+            </thead>
+            <tbody id="layersTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <p id="actualLayerCountSummary" role="status" aria-live="polite" style="padding:0.6rem 1rem;font-size:0.75rem;color:var(--accent-cyan);"></p>
+        <details class="field-help table-note">
+          <summary>銅層序與層名稱的差別</summary>
+          <p>「銅層序」依目前頂部至底部重算；名稱如 L12_SIG、BOTTOM 是保留的標籤，不代表銅層總數。XML 繼續使用原名稱。</p>
+        </details>
+        <details class="field-help table-note">
+          <summary>材質數值、填充與顏色如何保存</summary>
+          <p>Conductivity、Relative Permittivity、Loss Tangent 來自 Material。未定義的數值顯示「—」，不猜填成 0。Dielectric Fill 只適用金屬層，未選用時不寫入 XML。顏色與 Role 隨 XML 註解保存供本工具還原；SIwave 是否套用顏色須在軟體內確認。</p>
+        </details>
+      </div>
+
+    <!-- Right Column: Visualizer & Real-time XML -->
+    <div class="panel-col preview-column">
+      
+      <!-- Card 4: Visualizer -->
+      <div class="card preview-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="dot dot-gold"></span>
+            疊層剖面即時預覽
+          </h2>
+          <div style="text-align: right;">
+            <span style="font-size:0.7rem; color:var(--text-muted); display:block;">總板厚 (Total)</span>
+            <span id="statTotalThickness" style="font-size:1.05rem; font-weight:800; color:var(--accent-gold); font-family:var(--code-font);">1.6000 mm</span>
+          </div>
+        </div>
+
+        <div class="visual-stack" id="stackupVisual">
+          <!-- Layers visually rendered here -->
+        </div>
+
+        <div class="legend-bar">
+          <div class="legend-item"><span class="legend-box" style="background:var(--copper-grad);"></span> 導體 (Copper)</div>
+          <div class="legend-item"><span class="legend-box" style="background:var(--diel-grad); border:1px solid #475569;"></span> 介電層 (Core/PP)</div>
+          <div class="legend-item"><span class="legend-box" style="background:var(--mask-grad);"></span> 防焊層 (Mask)</div>
+        </div>
+      </div>
+
+      <!-- Card 5: Real-time XML Code Preview -->
+      <details class="card disclosure" id="xmlDisclosure">
+        <summary>
+          <h2 class="card-title">
+            <span class="dot dot-blue"></span>
+            SIwave XML 即時代碼
+          </h2>
+        </summary>
+        <div class="xml-actions">
+          <button onclick="copyXmlToClipboard()" class="btn btn-secondary" title="複製代碼">
+            複製代碼
+          </button>
+        </div>
+
+        <textarea id="xmlPreview" readonly class="xml-textarea" aria-label="SIwave XML 即時代碼"></textarea>
+      </details>
+
+    </div>
+      <!-- Card 3: Materials Library -->
+      <div class="card materials-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="dot dot-emerald"></span>
+            3. 電氣材質庫 (Materials Library)
+          </h2>
+          <button onclick="openAddMaterialModal()" class="btn btn-secondary" style="font-size:0.75rem; color:var(--accent-emerald);">
+            + 新增自訂材質
+          </button>
+        </div>
+
+        <div class="mat-grid" id="materialsList">
+          <!-- Dynamically populated materials -->
+        </div>
+      </div>
+
+  </main>
+  <footer style="max-width:1680px;width:100%;margin:0 auto;padding:0 1.75rem 1.5rem;color:var(--text-muted);font-size:0.8rem;">
+    <a href="./SIwave_Stackup_Studio.html" download="SIwave_Stackup_Studio.html" style="color:var(--accent-cyan);">下載離線 HTML</a>
+    <span> · 不需安裝；匯入的資料留在目前瀏覽器，請匯出 XML 保存。</span>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toast">
+    <svg width="16" height="16" fill="none" stroke="#10b981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toastMsg">訊息通知</span>
+  </div>
+
+  <!-- Add Material Modal -->
+  <div class="modal-overlay" id="addMaterialModal">
+    <div class="modal-box">
+      <h3>新增自訂電氣材質</h3>
+      <div class="form-group" style="margin-bottom:0.75rem;">
+        <label class="form-label">材質名稱 (Unique Name)</label>
+        <input type="text" id="newMatName" placeholder="例如: Megtron7, Nelco_N4000, PTFE" class="form-input">
+      </div>
+      <div class="form-grid" style="margin-bottom:0.75rem;">
+        <div class="form-group">
+          <label class="form-label">介電常數 Dk (Permittivity)</label>
+          <input type="number" step="0.01" id="newMatPerm" value="3.40" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">介質損耗 Df (Loss Tangent)</label>
+          <input type="number" step="0.0001" id="newMatLoss" value="0.0020" class="form-input">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label">導電率 Conductivity (S/m，若是介質層請留空)</label>
+        <input type="number" id="newMatCond" placeholder="導體填寫，例如 58000000" class="form-input">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button onclick="closeAddMaterialModal()" class="btn btn-secondary">取消</button>
+        <button onclick="saveNewMaterial()" class="btn btn-primary">儲存材質</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help & SIwave Import Tutorial Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-box">
+      <h3>📖 如何將 XML 疊層匯入 Ansys SIwave</h3>
+      <p>本工具依 Ansys 公開 Stackup XML 範例輸出材質與層設定；請在你的 SIwave 版本中核對匯入結果。請依照以下步驟匯入：</p>
+      
+      <ol>
+        <li>在 <strong>Ansys SIwave</strong> 中開啟您的 PCB 專案 (或已導入的 layout 檔)。</li>
+        <li>於上方選單點選 <strong>Layout</strong> → <strong>Layer Stackup...</strong> 開啟疊層設定視窗。</li>
+        <li>在疊層視窗下方或工具列點選 <strong>Import...</strong> 按鈕。</li>
+        <li>選擇由此工具匯出的 <code>.xml</code> 檔案即可一鍵載入所有導體層、介質層、厚度及材質參數！</li>
+      </ol>
+
+      <div class="step-img-placeholder">
+        [SIwave 流程提示] Layout &gt; Layer Stackup &gt; Import &gt; 選擇 XML 檔案
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top: 1rem;">
+        <button onclick="closeHelpModal()" class="btn btn-primary">了解並關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complete SIwave Workflow SOP & Checklist Modal -->
+  <div class="modal-overlay" id="sopModal">
+    <div class="modal-box modal-box-large">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-color);">
+        <h3>
+          <span style="font-size:1.4rem;">🧭</span> Ansys SIwave 完整模擬流程 SOP 與必備檢查清單
+        </h3>
+        <button onclick="closeSopModal()" class="btn-icon" style="font-size:1.2rem;">✕</button>
+      </div>
+
+      <p style="margin-bottom:1rem; color:#94a3b8;">
+        在 Ansys SIwave 模擬中，要獲得準確的 **SI (訊號完整性)**、**PI (電源完整性)**、**DC IR-Drop (直流壓降)** 或 **EMI 輻射** 結果，請遵循以下 6 個標準作業步驟：
+      </p>
+
+      <!-- Step 1 -->
+      <div class="sop-flow-card" id="sop-card-1">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-1-badge">步驟 1：疊層與材質設定 (Layer Stackup & Materials)</span>
+          <span style="color:#10b981; font-weight:700; font-size:0.75rem;">✓ 本工具已直接支援</span>
+        </div>
+        <p><strong>操作路徑：</strong><code>Layout → Layer Stackup... → Import XML</code></p>
+        <ul style="margin: 0.4rem 0 0 1.2rem; font-size:0.8rem; color:#cbd5e1;">
+          <li>正確定義各金屬銅箔層厚度（1 oz ~ 0.035mm / 0.5 oz ~ 0.018mm）。</li>
+          <li>指派板材介電常數（Dk）與介質損耗（Df）（如 FR4, Megtron6, Rogers）。</li>
+          <li>設定頂層/底層綠漆防焊層（Solder Mask, Dk=3.5），避免表面微帶線阻抗計算失真。</li>
+        </ul>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="sop-flow-card" id="sop-card-2">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-2-badge">步驟 2：Net 網路分類與 DC 電壓指派 (Net Classification)</span>
+          <span style="color:#fbbf24; font-weight:700; font-size:0.75rem;">必做關鍵設定</span>
+        </div>
+        <p><strong>操作路徑：</strong><code>Layout → Classify Nets...</code> 或於左側 Nets 樹狀圖右鍵分類</p>
+        <ul style="margin: 0.4rem 0 0 1.2rem; font-size:0.8rem; color:#cbd5e1;">
+          <li><strong>Signal Nets</strong>：指定一般高速/低速訊號線。</li>
+          <li><strong>Power Nets</strong>：指定電源網路（如 +12V, +3.3V, VDD_DDR），並<strong>務必填入其工作 DC 電壓</strong>。</li>
+          <li><strong>Ground Nets</strong>：指定接地網路（如 GND, AGND），預設電壓為 <code>0V</code>。</li>
+          <li><em>(若未設定正確電壓，DC IR-Drop 壓降與去耦電容分析將無法進行)</em>。</li>
+        </ul>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="sop-flow-card" id="sop-card-3">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-3-badge">步驟 3：元件電氣特性與模型指派 (Component Assignment)</span>
+          <span style="color:#38bdf8; font-weight:700; font-size:0.75rem;">模型精準度核心</span>
+        </div>
+        <p><strong>操作路徑：</strong><code>Components → Assign RLC... / Assign Device Model...</code></p>
+        <ul style="margin: 0.4rem 0 0 1.2rem; font-size:0.8rem; color:#cbd5e1;">
+          <li><strong>去耦電容 (Decoupling Caps)</strong>：指派真實 RLC 數值，或掛載電容廠商提供的 <code>.s2p</code> S 參數模型（包含真實 ESR/ESL 寄生特徵）。</li>
+          <li><strong>串聯阻抗/磁珠/跳線</strong>：阻抗匹配電阻（如 22Ω）或 0Ω 電阻必須賦予正確值，避免訊號走線在該處被視為斷路。</li>
+          <li><strong>VRM 源端與 Sink 負載 (针对 PI/DC)</strong>：指定電源供應點（Voltage Source）及各 IC Pin 的吃載電流（Current Load）。</li>
+        </ul>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="sop-flow-card" id="sop-card-4">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-4-badge">步驟 4：版圖驗證與銅箔粗糙度 (Verify Layout & Roughness)</span>
+          <span style="color:#f87171; font-weight:700; font-size:0.75rem;">除錯與高頻必檢</span>
+        </div>
+        <p><strong>操作路徑：</strong><code>Tools → Verify Layout...</code> & <code>Layer Stackup → Surface Roughness</code></p>
+        <ul style="margin: 0.4rem 0 0 1.2rem; font-size:0.8rem; color:#cbd5e1;">
+          <li><strong>DRC 幾何驗證</strong>：執行檢查是否有未預期的短路（Shorts）、意外斷線（Opens）或懸空未接銅箔（Floating Islands）。</li>
+          <li><strong>過孔反焊盤 (Via Anti-pad)</strong>：確認過孔穿越內層平面時是否具備正確的 Clearance 隔離。</li>
+          <li><strong>銅箔粗糙度 (Surface Roughness)</strong>：高速訊號（&gt; 5 Gbps）務必開啟 <strong>Huray</strong> 或 <strong>Hammerstad</strong> 模型，否則高頻趨膚效應導體損耗會被嚴重低估！</li>
+        </ul>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="sop-flow-card" id="sop-card-5">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-5-badge">步驟 5：埠與激勵源設定 (Ports & Probes Definition)</span>
+          <span style="color:#c084fc; font-weight:700; font-size:0.75rem;">S 參數與迴流關鍵</span>
+        </div>
+        <p><strong>操作路徑：</strong><code>Simulation → Generate Circuit Ports...</code></p>
+        <ul style="margin: 0.4rem 0 0 1.2rem; font-size:0.8rem; color:#cbd5e1;">
+          <li>在發射端（Driver）與接收端（Receiver）建立 Circuit Ports。</li>
+          <li><strong>迴流接地參考（Reference GND）</strong>：嚴格確認 Port 的負端是否接在最近且連續的 GND 參考面上，避免引起假性迴流電感。</li>
+          <li><strong>BGA Pin Grouping</strong>：若晶片底座有密集並聯的 GND/Power pins，使用 Pin Group 結合成單一 Port，大幅節省運算資源。</li>
+        </ul>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="sop-flow-card" id="sop-card-6">
+        <div class="sop-flow-header">
+          <span class="sop-badge-step step-6-badge">步驟 6：配置並執行模擬求解器 (Simulation Solver Setup)</span>
+          <span style="color:#34d399; font-weight:700; font-size:0.75rem;">依目的選取求解器</span>
+        </div>
+        <table style="width:100%; font-size:0.75rem; margin-top:0.4rem; background:#080c14; border-radius:6px;">
+          <tr style="border-bottom:1px solid #1e293b;">
+            <th style="padding:0.4rem; color:var(--accent-gold);">模擬目標</th>
+            <th style="padding:0.4rem; color:var(--accent-cyan);">推薦求解器 Setup</th>
+            <th style="padding:0.4rem; color:#cbd5e1;">關鍵設定重點</th>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:0.4rem;"><strong>DC IR 壓降 / 載流過熱</strong></td>
+            <td style="padding:0.4rem; color:var(--accent-cyan);">Compute DC IR Drop</td>
+            <td style="padding:0.4rem;">勾選計算過孔/走線電流密度分佈、設定工作溫度 (如 25°C 或 85°C)</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:0.4rem;"><strong>S 參數 / PDN 阻抗 Z11</strong></td>
+            <td style="padding:0.4rem; color:var(--accent-cyan);">Compute SYZ Parameters</td>
+            <td style="padding:0.4rem;">設定頻率範圍 (如 100kHz ~ 10GHz)、Decade 取樣分佈、收斂精度</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:0.4rem;"><strong>電源平面腔體諧振</strong></td>
+            <td style="padding:0.4rem; color:var(--accent-cyan);">Compute Resonant Modes</td>
+            <td style="padding:0.4rem;">設定最大諧振模態數、尋找電壓熱點以加裝去耦電容</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;"><strong>EMI / EMC 輻射預估</strong></td>
+            <td style="padding:0.4rem; color:var(--accent-cyan);">Compute Near/Far Field</td>
+            <td style="padding:0.4rem;">設定法規量測距離 (如 3m / 10m 球面場型)</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Interactive Checklist Section -->
+      <div class="checklist-container">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+          <h4 style="font-size:0.85rem; color:#ffffff; display:flex; align-items:center; gap:0.4rem;">
+            <span>✅</span> 模擬前準備就緒檢查清單 (Checklist)
+          </h4>
+          <span id="sopProgressText" style="font-size:0.75rem; font-weight:700; color:var(--accent-gold); font-family:var(--code-font);">0 / 6 完成 (0%)</span>
+        </div>
+
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_1" onchange="updateSopProgress()">
+          <label for="chk_1">【疊層】已匯入正確的 XML 疊層、金屬厚度、介質材料 Dk/Df 與防焊層</label>
+        </div>
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_2" onchange="updateSopProgress()">
+          <label for="chk_2">【網路】已完成 Classify Nets，Signal/PWR/GND 劃分無誤，且 Power Net 填有正確 DC 電壓</label>
+        </div>
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_3" onchange="updateSopProgress()">
+          <label for="chk_3">【元件】去耦電容/RLC 數值或 S 參數已指派，0 歐姆跳線電阻已給值</label>
+        </div>
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_4" onchange="updateSopProgress()">
+          <label for="chk_4">【DRC】已執行 Verify Layout 確認無 Shorts/Opens，高速訊號已啟動表面粗糙度模型</label>
+        </div>
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_5" onchange="updateSopProgress()">
+          <label for="chk_5">【端口】Circuit Ports 激勵源已放置，且確認負端 Reference 接在正確的 GND 參考平面</label>
+        </div>
+        <div class="checklist-row">
+          <input type="checkbox" id="chk_6" onchange="updateSopProgress()">
+          <label for="chk_6">【求解器】已配置 DC IR Drop / SYZ 求解參數（頻率掃描範圍與收斂精度）</label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 1.25rem;">
+        <button onclick="copySopReport()" class="btn btn-secondary" style="font-size:0.78rem;">
+          📋 複製完整 SOP 檢查報告
+        </button>
+        <button onclick="closeSopModal()" class="btn btn-primary">關閉手冊</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let unit = 'mm';
+    let materials = Object.assign(Object.create(null), {
+      'copper': { name: 'copper', conductivity: 58000000 },
+      'FR4_epoxy': { name: 'FR4_epoxy', permittivity: 4.4, lossTangent: 0.02 },
+      'SolderMask': { name: 'SolderMask', permittivity: 3.5, lossTangent: 0.03 },
+      'Rogers_RO4350B': { name: 'Rogers_RO4350B', permittivity: 3.66, lossTangent: 0.0037 },
+      'Rogers_RO4003C': { name: 'Rogers_RO4003C', permittivity: 3.55, lossTangent: 0.0027 },
+      'Megtron6': { name: 'Megtron6', permittivity: 3.7, lossTangent: 0.002 },
+      'Megtron7': { name: 'Megtron7', permittivity: 3.35, lossTangent: 0.0015 },
+      'Isola_370HR': { name: 'Isola_370HR', permittivity: 3.92, lossTangent: 0.022 },
+      'Isola_FR408HR': { name: 'Isola_FR408HR', permittivity: 3.68, lossTangent: 0.009 },
+      'Shengyi_S1000_2': { name: 'Shengyi_S1000_2', permittivity: 4.3, lossTangent: 0.015 },
+      'Polyimide': { name: 'Polyimide', permittivity: 3.5, lossTangent: 0.008 }
+    });
+
+    let layers = [];
+
+    function escapeMarkup(value) {
+      return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function layerColor(layer, index) {
+      if (/^#[0-9a-f]{6}$/i.test(layer.color || '')) return layer.color;
+      if (layer.role === 'soldermask') return '#059669';
+      if (layer.type !== 'conductor') return '#64748b';
+      return ['#f59e0b', '#22d3ee', '#a78bfa', '#f87171', '#34d399'][index % 5];
+    }
+
+    function materialProperty(material, key) {
+      const value = materials[material]?.[key];
+      if (value === undefined || value === null || !Number.isFinite(Number(value))) return '—';
+      return key === 'conductivity' && Math.abs(value) >= 10000 ? Number(value).toExponential(2).replace('e', 'E') : String(value);
+    }
+
+    function setTableView(view) {
+      if (!['siwave', 'basic'].includes(view)) return;
+      document.querySelector('.layer-editor-card').dataset.view = view;
+      document.getElementById('siwaveViewButton').setAttribute('aria-pressed', String(view === 'siwave'));
+      document.getElementById('basicViewButton').setAttribute('aria-pressed', String(view === 'basic'));
+    }
+
+    // Presets Library
+    const presets = {
+      '2': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'Core', type: 'dielectric', material: 'FR4_epoxy', thickness: 1.500, role: 'dielectric' },
+        { name: 'BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '4': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'Dielectric1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'GND', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Core', type: 'dielectric', material: 'FR4_epoxy', thickness: 1.200, role: 'dielectric' },
+        { name: 'PWR', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Dielectric3', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '4_highspeed': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP_Microstrip', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'PP_Prepreg', type: 'dielectric', material: 'Megtron6', thickness: 0.100, role: 'dielectric' },
+        { name: 'GND', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Core', type: 'dielectric', material: 'Megtron6', thickness: 0.650, role: 'dielectric' },
+        { name: 'PWR', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'PP_Prepreg2', type: 'dielectric', material: 'Megtron6', thickness: 0.100, role: 'dielectric' },
+        { name: 'BOTTOM_Microstrip', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '6': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'Dielectric1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'GND1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Core1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.450, role: 'dielectric' },
+        { name: 'SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Dielectric2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.200, role: 'dielectric' },
+        { name: 'SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Core2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.450, role: 'dielectric' },
+        { name: 'PWR', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Dielectric3', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '6_hdi': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'L1_GND', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Diel1', type: 'dielectric', material: 'Isola_370HR', thickness: 0.080, role: 'dielectric' },
+        { name: 'L2_SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Core1', type: 'dielectric', material: 'Isola_370HR', thickness: 0.500, role: 'dielectric' },
+        { name: 'L3_PWR', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Diel2', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L4_GND', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'Core2', type: 'dielectric', material: 'Isola_370HR', thickness: 0.500, role: 'dielectric' },
+        { name: 'L5_SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Diel3', type: 'dielectric', material: 'Isola_370HR', thickness: 0.080, role: 'dielectric' },
+        { name: 'L6_GND', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '8': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'Dielectric1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'GND1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Dielectric2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.150, role: 'dielectric' },
+        { name: 'SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Core1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.350, role: 'dielectric' },
+        { name: 'GND2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Dielectric3', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.150, role: 'dielectric' },
+        { name: 'PWR', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Core2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.350, role: 'dielectric' },
+        { name: 'SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'Dielectric4', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.150, role: 'dielectric' },
+        { name: 'GND3', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'Dielectric5', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.100, role: 'dielectric' },
+        { name: 'BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '8_rogers': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'TOP_RF', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'RF_Substrate_1', type: 'dielectric', material: 'Rogers_RO4350B', thickness: 0.101, role: 'dielectric' },
+        { name: 'GND1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'FR4_Core_1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.300, role: 'dielectric' },
+        { name: 'SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'FR4_PP_1', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.150, role: 'dielectric' },
+        { name: 'GND2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'FR4_Core_2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.300, role: 'dielectric' },
+        { name: 'PWR', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'FR4_PP_2', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.150, role: 'dielectric' },
+        { name: 'SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'FR4_Core_3', type: 'dielectric', material: 'FR4_epoxy', thickness: 0.300, role: 'dielectric' },
+        { name: 'GND3', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'RF_Substrate_2', type: 'dielectric', material: 'Rogers_RO4350B', thickness: 0.101, role: 'dielectric' },
+        { name: 'BOTTOM_RF', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '10': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'L01_TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'D01_PP', type: 'dielectric', material: 'Megtron6', thickness: 0.100, role: 'dielectric' },
+        { name: 'L02_GND1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D02_Core', type: 'dielectric', material: 'Megtron6', thickness: 0.150, role: 'dielectric' },
+        { name: 'L03_SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D03_PP', type: 'dielectric', material: 'Megtron6', thickness: 0.150, role: 'dielectric' },
+        { name: 'L04_GND2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D04_Core', type: 'dielectric', material: 'Megtron6', thickness: 0.500, role: 'dielectric' },
+        { name: 'L05_PWR1', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'D05_PP', type: 'dielectric', material: 'Megtron6', thickness: 0.100, role: 'dielectric' },
+        { name: 'L06_GND3', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'D06_Core', type: 'dielectric', material: 'Megtron6', thickness: 0.500, role: 'dielectric' },
+        { name: 'L07_GND4', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D07_PP', type: 'dielectric', material: 'Megtron6', thickness: 0.150, role: 'dielectric' },
+        { name: 'L08_SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D08_Core', type: 'dielectric', material: 'Megtron6', thickness: 0.150, role: 'dielectric' },
+        { name: 'L09_GND5', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D09_PP', type: 'dielectric', material: 'Megtron6', thickness: 0.100, role: 'dielectric' },
+        { name: 'L10_BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ],
+      '12': [
+        { name: 'TopSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' },
+        { name: 'L01_TOP', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'D01_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.100, role: 'dielectric' },
+        { name: 'L02_GND1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D02_Core', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L03_SIG1', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D03_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L04_GND2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D04_Core', type: 'dielectric', material: 'Isola_370HR', thickness: 0.250, role: 'dielectric' },
+        { name: 'L05_SIG2', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D05_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L06_PWR1', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'D06_CenterCore', type: 'dielectric', material: 'Isola_370HR', thickness: 0.400, role: 'dielectric' },
+        { name: 'L07_PWR2', type: 'conductor', material: 'copper', thickness: 0.035, role: 'plane' },
+        { name: 'D07_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L08_SIG3', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D08_Core', type: 'dielectric', material: 'Isola_370HR', thickness: 0.250, role: 'dielectric' },
+        { name: 'L09_GND3', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D09_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L10_SIG4', type: 'conductor', material: 'copper', thickness: 0.018, role: 'signal' },
+        { name: 'D10_Core', type: 'dielectric', material: 'Isola_370HR', thickness: 0.150, role: 'dielectric' },
+        { name: 'L11_GND4', type: 'conductor', material: 'copper', thickness: 0.018, role: 'plane' },
+        { name: 'D11_Prepreg', type: 'dielectric', material: 'Isola_370HR', thickness: 0.100, role: 'dielectric' },
+        { name: 'L12_BOTTOM', type: 'conductor', material: 'copper', thickness: 0.035, role: 'signal' },
+        { name: 'BottomSolderMask', type: 'dielectric', material: 'SolderMask', thickness: 0.02, role: 'soldermask' }
+      ]
+    };
+
+    // This bound limits a single bulk resize, not XML reading or the layer data model.
+    const MAX_CUSTOM_COPPER_LAYERS = 512;
+    let layerCountUndo = null;
+
+    function showLayerCountMessage(message, isError = false) {
+      const output = document.getElementById('customLayerMessage');
+      output.textContent = message;
+      output.style.color = isError ? 'var(--accent-red)' : 'var(--accent-cyan)';
+      document.getElementById('customCopperCount').setAttribute('aria-invalid', String(isError));
+    }
+
+    function syncLayerCountControls() {
+      document.getElementById('customCopperCount').value = layers.filter(l => l.type === 'conductor').length;
+      document.getElementById('undoLayerCountButton').disabled = !layerCountUndo;
+      document.getElementById('includeSolderMask').checked = layers.some(l => l.role === 'soldermask');
+      const factor = unit === 'mil' ? 39.3701 : 1;
+      document.querySelector('#presetSelect option[value="custom"]').textContent = `自訂：${layers.filter(l => l.type === 'conductor').length} 銅層（${layers.length} 列結構）`;
+      const match = Object.entries(presets).find(([, preset]) =>
+        preset.length === layers.length && preset.every((p, i) => {
+          const l = layers[i];
+          return ['name', 'type', 'material', 'role'].every(k => l[k] === p[k]) &&
+            Math.abs(Number(l.thickness) - p.thickness * factor) < 0.00011;
+        })
+      );
+      document.getElementById('presetSelect').value = match ? match[0] : 'custom';
+    }
+
+    function planLayerCountChange(target) {
+      const next = layers.map(l => ({ ...l }));
+      const copperIndices = next.map((l, i) => l.type === 'conductor' ? i : -1).filter(i => i >= 0);
+      const current = copperIndices.length;
+      const removed = [];
+      const names = new Set(next.map(l => l.name));
+      function uniqueName(prefix, suffix = '') {
+        let index = 1;
+        while (names.has(`${prefix}${index}${suffix}`)) index++;
+        const name = `${prefix}${index}${suffix}`;
+        names.add(name);
+        return name;
+      }
+      if (target > current) {
+        const factor = unit === 'mil' ? 39.3701 : 1;
+        const material = document.getElementById('globalMaterial').value;
+        for (let count = current; count < target; count++) {
+          const copper = { name: uniqueName('L', '_SIG'), type: 'conductor', material: 'copper', thickness: 0.035 * factor, role: 'signal' };
+          const dielectric = { name: uniqueName('Dielectric_'), type: 'dielectric', material, thickness: 0.15 * factor, role: 'dielectric' };
+          let lastCopper = -1;
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].type === 'conductor') { lastCopper = i; break; }
+          }
+          if (count === 0) {
+            let position = next.length;
+            while (position > 0 && next[position - 1].role === 'soldermask') position--;
+            next.splice(position, 0, copper);
+          } else if (count === 1) {
+            next.splice(lastCopper + 1, 0, dielectric, copper);
+          } else {
+            next.splice(lastCopper, 0, copper, dielectric);
+          }
+        }
+      } else if (target < current) {
+        // Keep the top and bottom copper for targets >= 2. Remove inner copper
+        // from the bottom, with one adjacent non-mask dielectric per removed copper.
+        const indices = target === 1 ? copperIndices.slice(1) : copperIndices.slice(target - 1, -1);
+        indices.reverse().forEach(index => {
+          let start = index;
+          let amount = 1;
+          if (next[index + 1]?.type === 'dielectric' && next[index + 1].role !== 'soldermask') {
+            amount = 2;
+          } else if (next[index - 1]?.type === 'dielectric' && next[index - 1].role !== 'soldermask') {
+            start--;
+            amount = 2;
+          }
+          removed.push(...next.splice(start, amount));
+        });
+      }
+      return { next, removed, current };
+    }
+
+    function applyCustomLayerCount() {
+      const input = document.getElementById('customCopperCount');
+      const raw = String(input.value).trim();
+      const target = Number(raw);
+      if (!/^\d+$/.test(raw) || !Number.isSafeInteger(target) || target < 1 || target > MAX_CUSTOM_COPPER_LAYERS) {
+        showLayerCountMessage(`請輸入 1–${MAX_CUSTOM_COPPER_LAYERS} 的正整數銅層數；不可空白、小數、負數或科學記號。原有疊層未變更。`, true);
+        return;
+      }
+      const { next, removed, current } = planLayerCountChange(target);
+      if (target === current) {
+        showLayerCountMessage(`目前已是 ${current} 個銅層，未變更任何資料。`);
+        return;
+      }
+      if (removed.length) {
+        const preview = removed.map(l => l.name).slice(0, 8).join('、');
+        if (!confirm(`將銅層由 ${current} 減為 ${target}，刪除 ${current - target} 個銅層及 ${removed.length - (current - target)} 個相鄰介質層。\n刪除項目：${preview}${removed.length > 8 ? '…' : ''}\n${target >= 2 ? '保留頂部、底部與上方其餘銅層；' : '只保留最上方銅層；'}其餘保留層的名稱、順序、材料及厚度不變。\n建議先匯出 XML 備份。是否繼續？`)) {
+          input.value = current;
+          showLayerCountMessage('已取消減層，原有疊層未變更。');
+          return;
+        }
+      }
+      layerCountUndo = { layers: layers.map(l => ({ ...l })), unit };
+      layers = next;
+      render();
+      showLayerCountMessage(`已套用 ${target} 個銅層／${layers.length} 列結構；請以「銅層序」核對，層名稱保留不重編。保留層的資料與厚度不變；總板厚已重新加總，需要時可另按「均分」。可復原上次調整。`);
+    }
+
+    function undoLayerCountChange() {
+      if (!layerCountUndo) return;
+      if (!confirm('將還原上次層數調整前的疊層，並取代調整後對疊層的編輯。是否繼續？')) return;
+      const factor = layerCountUndo.unit === unit ? 1 : (unit === 'mil' ? 39.3701 : 1 / 39.3701);
+      layers = layerCountUndo.layers.map(l => ({ ...l, thickness: l.thickness * factor }));
+      layerCountUndo = null;
+      render();
+      showLayerCountMessage('已復原上次層數調整；目前長度單位保持不變。');
+    }
+
+    function init() {
+      applyPreset('4', false);
+      setupDragAndDrop();
+    }
+
+    function applyPreset(key, confirmReplace = true) {
+      if (!presets[key]) { syncLayerCountControls(); return; }
+      if (confirmReplace && layers.length && !confirm('套用預設將取代目前全部疊層編輯，建議先匯出 XML。是否繼續？')) {
+        syncLayerCountControls();
+        return;
+      }
+      const factor = unit === 'mil' ? 39.3701 : 1;
+      layers = presets[key].map(l => ({ ...l, thickness: l.thickness * factor }));
+      render();
+      showLayerCountMessage('已套用預設；如需其他銅層數，可在上方輸入後套用。');
+    }
+
+    function resetToDefault() {
+      if (layers.length && !confirm('重設將取代目前疊層並回到 4 銅層、mm 單位，建議先匯出 XML。是否繼續？')) return;
+      document.getElementById('presetSelect').value = '4';
+      document.getElementById('lengthUnit').value = 'mm';
+      unit = 'mm';
+      applyPreset('4', false);
+      showToast('已重設為 4 層板標準配置！');
+    }
+
+    function render() {
+      layers.forEach((layer, index) => { layer.color = layerColor(layer, index); });
+      renderTable();
+      renderVisual();
+      renderMaterials();
+      renderXmlPreview();
+      updateStats();
+      syncLayerCountControls();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('layersTableBody');
+      tbody.innerHTML = '';
+      const matKeys = Object.keys(materials);
+      let copperOrdinal = 0;
+
+      layers.forEach((l, idx) => {
+        const tr = document.createElement('tr');
+        const isConductor = l.type === 'conductor';
+        if (isConductor) copperOrdinal++;
+        const isMask = l.role === 'soldermask';
+
+        let typeBadge = isConductor 
+          ? `<span class="badge badge-conductor">Conductor</span>`
+          : (isMask ? `<span class="badge badge-mask">Mask</span>` : `<span class="badge badge-dielectric">Dielectric</span>`);
+
+        const matOptions = matKeys.map(m => `<option value="${escapeMarkup(m)}" ${l.material === m ? 'selected' : ''}>${escapeMarkup(m)}</option>`).join('');
+        const fillOptions = matKeys.filter(m => !materials[m].conductivity).map(m => `<option value="${escapeMarkup(m)}" ${l.fillMaterial === m ? 'selected' : ''}>${escapeMarkup(m)}</option>`).join('');
+
+        tr.innerHTML = `
+          <td class="siwave-only"><input type="color" class="form-input" value="${layerColor(l, idx)}" aria-label="第 ${idx + 1} 列顏色" onchange="updateLayer(${idx}, 'color', this.value)"></td>
+          <td>
+            <input type="text" value="${escapeMarkup(l.name)}" aria-label="第 ${idx + 1} 列層名稱" onchange="updateLayer(${idx}, 'name', this.value)" class="form-input" style="width:100%; font-family:var(--code-font); font-size:0.75rem;">
+          </td>
+          <td>
+            <select aria-label="第 ${idx + 1} 列類型" onchange="updateLayer(${idx}, 'type', this.value)" class="form-select" style="font-size:0.72rem; padding:0.3rem;">
+              <option value="conductor" ${l.type === 'conductor' ? 'selected' : ''}>METAL</option>
+              <option value="dielectric" ${l.type === 'dielectric' ? 'selected' : ''}>DIELECTRIC</option>
+            </select>
+          </td>
+          <td>
+            <input type="number" min="0" step="0.0001" value="${l.thickness}" aria-label="第 ${idx + 1} 列厚度" onchange="updateLayer(${idx}, 'thickness', parseFloat(this.value))" class="form-input" style="width:100%; font-family:var(--code-font); font-size:0.75rem;">
+          </td>
+          <td>
+            <select aria-label="第 ${idx + 1} 列材質" onchange="updateLayer(${idx}, 'material', this.value)" class="form-select" style="width:100%; font-size:0.72rem; padding:0.3rem;">
+              ${matOptions}
+            </select>
+          </td>
+          <td class="siwave-only property-value" data-property="conductivity">${materialProperty(l.material, 'conductivity')}</td>
+          <td class="siwave-only">${isConductor ? `<select class="form-select" aria-label="第 ${idx + 1} 列介質填充" onchange="updateLayer(${idx}, 'fillMaterial', this.value)"><option value="">未設定</option>${fillOptions}</select>` : '<span class="not-applicable" title="介質層不適用">—</span>'}</td>
+          <td class="siwave-only property-value" data-property="permittivity">${materialProperty(l.material, 'permittivity')}</td>
+          <td class="siwave-only property-value" data-property="lossTangent">${materialProperty(l.material, 'lossTangent')}</td>
+          <td class="basic-only" style="text-align:center; font-family:var(--code-font); color:var(--text-muted);">列 ${idx + 1}${isConductor ? `<br><strong style="color:var(--accent-gold);">銅 L${copperOrdinal}</strong>` : ''}</td>
+          <td class="basic-only">
+            <select aria-label="第 ${idx + 1} 列角色" onchange="updateLayer(${idx}, 'role', this.value)" class="form-select" style="width:100%; font-size:0.72rem; padding:0.3rem;">
+              <option value="signal" ${l.role === 'signal' ? 'selected' : ''}>Signal</option>
+              <option value="plane" ${l.role === 'plane' ? 'selected' : ''}>Plane (GND/PWR)</option>
+              <option value="dielectric" ${l.role === 'dielectric' ? 'selected' : ''}>Dielectric</option>
+              <option value="soldermask" ${l.role === 'soldermask' ? 'selected' : ''}>Solder Mask</option>
+            </select>
+          </td>
+          <td style="text-align: right;">
+            <div style="display:flex; justify-content:flex-end; gap:2px;">
+              <button onclick="moveLayer(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="btn-icon" title="上移">▲</button>
+              <button onclick="moveLayer(${idx}, 1)" ${idx === layers.length - 1 ? 'disabled' : ''} class="btn-icon" title="下移">▼</button>
+              <button onclick="deleteLayer(${idx})" class="btn-icon btn-icon-del" title="刪除">✕</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderVisual() {
+      const container = document.getElementById('stackupVisual');
+      container.innerHTML = '';
+      let copperOrdinal = 0;
+
+      layers.forEach((l, idx) => {
+        const div = document.createElement('div');
+        const isConductor = l.type === 'conductor';
+        if (isConductor) copperOrdinal++;
+        const isMask = l.role === 'soldermask';
+
+        let typeClass = isConductor ? 'conductor' : (isMask ? 'soldermask' : 'dielectric');
+        let minH = isConductor ? '26px' : (l.thickness >= 0.3 ? '38px' : '28px');
+
+        div.className = `visual-layer ${typeClass}`;
+        div.style.minHeight = minH;
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <span style="font-family:var(--code-font); opacity:0.75; font-size:0.7rem;">${isConductor ? `銅 L${copperOrdinal}` : `列 ${idx + 1}`}.</span>
+            <span class="layer-color-mark" style="background:${layerColor(l, idx)};" aria-hidden="true"></span>
+            <span style="font-weight:700;">${escapeMarkup(l.name)}</span>
+            <span style="opacity:0.8; font-size:0.68rem; font-weight:normal;">[${escapeMarkup(l.material)}]</span>
+          </div>
+          <div style="font-family:var(--code-font); font-weight:600; font-size:0.72rem;">
+            ${l.thickness} ${unit}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderMaterials() {
+      const container = document.getElementById('materialsList');
+      container.innerHTML = '';
+
+      Object.values(materials).forEach(m => {
+        const div = document.createElement('div');
+        div.className = "mat-card";
+        
+        let details = '';
+        if (m.conductivity) {
+          details = `<div style="color:var(--accent-gold); font-family:var(--code-font);">σ: ${m.conductivity.toExponential(1)} S/m</div>`;
+        } else {
+          details = `
+            <div style="color:var(--accent-cyan); font-family:var(--code-font);">Dk: ${m.permittivity ?? '—'}</div>
+            <div style="color:var(--text-muted); font-family:var(--code-font);">Df: ${m.lossTangent ?? '—'}</div>
+          `;
+        }
+
+        div.innerHTML = `
+          <h4>${escapeMarkup(m.name)}</h4>
+          ${details}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function generateXmlString() {
+      let xml = `<?xml version="1.0" encoding="utf-8"?>\n`;
+      xml += `<Stackup xmlns="http://www.ansys.com/stackup" schemaVersion="1.0">\n`;
+      const display = { colors: layers.map(layerColor), roles: layers.map(l => l.role) };
+      xml += `  <!-- SIwaveStackupStudio ${JSON.stringify(display)} -->\n`;
+      const usedMaterials = new Set();
+      layers.forEach(l => {
+        usedMaterials.add(l.material);
+        if (l.type === 'conductor' && l.fillMaterial) usedMaterials.add(l.fillMaterial);
+      });
+      xml += `  <Materials>\n`;
+      usedMaterials.forEach(mKey => {
+        const mat = materials[mKey];
+        if (mat) {
+          xml += `    <Material Name="${escapeMarkup(mat.name)}">\n`;
+          for (const [key, tag] of [['conductivity', 'Conductivity'], ['permittivity', 'Permittivity'], ['lossTangent', 'DielectricLossTangent']]) {
+            if (mat[key] !== undefined && Number.isFinite(mat[key])) xml += `      <${tag}><Double>${mat[key]}</Double></${tag}>\n`;
+          }
+          xml += `    </Material>\n`;
+        }
+      });
+      xml += `  </Materials>\n`;
+      xml += `  <Layers LengthUnit="${unit}">\n`;
+      layers.forEach(l => {
+        const fill = l.type === 'conductor' && l.fillMaterial ? ` FillMaterial="${escapeMarkup(l.fillMaterial)}"` : '';
+        xml += `    <Layer Name="${escapeMarkup(l.name)}" Type="${l.type}" Material="${escapeMarkup(l.material)}" Thickness="${l.thickness}"${fill}/>\n`;
+      });
+      xml += `  </Layers>\n`;
+      xml += `</Stackup>\n`;
+      return xml;
+    }
+
+    function renderXmlPreview() {
+      document.getElementById('xmlPreview').value = generateXmlString();
+    }
+
+    function updateStats() {
+      let total = 0;
+      let conductorCount = 0;
+      layers.forEach(l => {
+        total += (parseFloat(l.thickness) || 0);
+        if (l.type === 'conductor') conductorCount++;
+      });
+
+      document.getElementById('statTotalThickness').textContent = `${total.toFixed(4)} ${unit}`;
+      document.getElementById('conductorLayerCount').textContent = conductorCount;
+      document.getElementById('totalLayerCount').textContent = layers.length;
+      document.getElementById('actualLayerCountSummary').textContent = `實際 ${conductorCount} 個銅層（${conductorCount ? `銅層序 L1–L${conductorCount}` : '無銅層'}）／${layers.length} 列結構；其餘為介質及防焊。`;
+      document.querySelectorAll('.unit-label').forEach(el => el.textContent = unit);
+    }
+
+    // Interactivity
+    function updateLayer(index, field, value) {
+      if (field === 'name' && (!String(value).trim() || layers.some((layer, i) => i !== index && layer.name === value))) {
+        showToast('層名稱不可空白或重複；原名稱未變更。'); renderTable(); return;
+      }
+      if (field === 'thickness' && (!Number.isFinite(value) || value < 0)) {
+        showToast('厚度須為大於或等於 0 的有效數值；原資料未變更。'); renderTable(); return;
+      }
+      if (field === 'color' && !/^#[0-9a-f]{6}$/i.test(value)) return;
+      if (field === 'fillMaterial' && (layers[index].type !== 'conductor' || (value && (!Object.hasOwn(materials, value) || materials[value].conductivity)))) return;
+      layers[index][field] = value;
+      if (field === 'type') {
+        if (value === 'dielectric') { delete layers[index].fillMaterial; layers[index].role = 'dielectric'; }
+        else if (layers[index].role === 'dielectric' || layers[index].role === 'soldermask') layers[index].role = 'signal';
+      }
+      render();
+    }
+
+    function moveLayer(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= layers.length) return;
+      const tmp = layers[index];
+      layers[index] = layers[target];
+      layers[target] = tmp;
+      render();
+    }
+
+    function deleteLayer(index) {
+      if (layers.length <= 1) {
+        alert("至少需要保留 1 層結構！");
+        return;
+      }
+      layers.splice(index, 1);
+      render();
+    }
+
+    function uniqueLayerName(base) {
+      let name = base;
+      let suffix = 2;
+      while (layers.some(layer => layer.name === name)) name = `${base}_${suffix++}`;
+      return name;
+    }
+
+    function addConductorLayer() {
+      const cCount = layers.filter(l => l.type === 'conductor').length + 1;
+      layers.push({
+        name: uniqueLayerName(`L${cCount}_SIG`),
+        type: 'conductor',
+        material: 'copper',
+        thickness: unit === 'mm' ? 0.035 : 1.37,
+        role: 'signal'
+      });
+      render();
+    }
+
+    function addDielectricLayer() {
+      const dCount = layers.filter(l => l.type === 'dielectric' && l.role !== 'soldermask').length + 1;
+      const mat = document.getElementById('globalMaterial').value;
+      layers.push({
+        name: uniqueLayerName(`Dielectric_${dCount}`),
+        type: 'dielectric',
+        material: mat,
+        thickness: unit === 'mm' ? 0.150 : 6.0,
+        role: 'dielectric'
+      });
+      render();
+    }
+
+    function changeUnit(newUnit) {
+      if (unit === newUnit) return;
+      const factor = newUnit === 'mil' ? 39.3701 : (1 / 39.3701);
+      layers.forEach(l => {
+        l.thickness = parseFloat((l.thickness * factor).toFixed(4));
+      });
+      const targetInput = document.getElementById('targetTotalThick');
+      targetInput.value = (parseFloat(targetInput.value) * factor).toFixed(2);
+      unit = newUnit;
+      render();
+      showToast(`已切換單位為 ${newUnit.toUpperCase()}！`);
+    }
+
+    function applyGlobalMaterial(matName) {
+      layers.forEach(l => {
+        if (l.type === 'dielectric' && l.role !== 'soldermask') {
+          l.material = matName;
+        }
+      });
+      render();
+      showToast(`已將介質材質統一設定為 ${matName}！`);
+    }
+
+    function autoDistributeDielectrics() {
+      const target = parseFloat(document.getElementById('targetTotalThick').value);
+      if (!target || target <= 0) return;
+
+      let nonDielThick = 0;
+      const dielIndices = [];
+
+      layers.forEach((l, idx) => {
+        if (l.type === 'dielectric' && l.role !== 'soldermask') {
+          dielIndices.push(idx);
+        } else {
+          nonDielThick += (l.thickness || 0);
+        }
+      });
+
+      if (dielIndices.length === 0) {
+        alert("目前沒有可供分配的介質層！");
+        return;
+      }
+
+      const remain = target - nonDielThick;
+      if (remain <= 0) {
+        alert("目標厚度過小，已小於金屬層與防焊層厚度總和！");
+        return;
+      }
+
+      const avgThick = parseFloat((remain / dielIndices.length).toFixed(4));
+      dielIndices.forEach(idx => {
+        layers[idx].thickness = avgThick;
+      });
+
+      render();
+      showToast("已自動計算並均分介質層厚度！");
+    }
+
+    function toggleSolderMask(hasSM) {
+      layers = layers.filter(l => l.role !== 'soldermask');
+      if (hasSM) {
+        const smTh = unit === 'mm' ? 0.02 : 0.8;
+        layers.unshift({ name: uniqueLayerName('TopSolderMask'), type: 'dielectric', material: 'SolderMask', thickness: smTh, role: 'soldermask' });
+        layers.push({ name: uniqueLayerName('BottomSolderMask'), type: 'dielectric', material: 'SolderMask', thickness: smTh, role: 'soldermask' });
+      }
+      render();
+    }
+
+    function exportXmlFile() {
+      const xml = generateXmlString();
+      const cCount = layers.filter(l => l.type === 'conductor').length;
+      const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `siwave_stackup_${cCount}layer_${unit}.xml`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("已成功下載 SIwave Stackup XML 檔案！");
+    }
+
+    // Portable clipboard support: standard API, compatible copy, then manual selection.
+    async function copyTextPortable(text, successMessage) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          showToast(successMessage);
+          return;
+        }
+      } catch (error) {
+        // A browser may deny clipboard access for a local file; keep its policy intact.
+      }
+
+      const active = document.activeElement;
+      const field = document.createElement('textarea');
+      field.value = text;
+      field.setAttribute('readonly', '');
+      field.style.cssText = 'position:fixed;left:0;top:0;opacity:0;pointer-events:none;';
+      document.body.appendChild(field);
+      field.focus();
+      field.select();
+      let copied = false;
+      try { copied = document.execCommand('copy'); } catch (error) {}
+      field.remove();
+      if (active && active.focus) active.focus();
+      if (copied) {
+        showToast(successMessage);
+        return;
+      }
+
+      let overlay = document.getElementById('portableCopyModal');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'portableCopyModal';
+        overlay.className = 'modal-overlay';
+        overlay.style.zIndex = '3000';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'portableCopyTitle');
+        overlay.innerHTML = `<div class="modal-box">
+          <h3 id="portableCopyTitle">手動複製內容</h3>
+          <p>瀏覽器未允許自動複製。請在下方按 Ctrl+C（Mac：Command+C），或使用文字選取選單複製。</p>
+          <textarea id="portableCopyText" class="xml-textarea" readonly aria-label="待複製內容" style="margin:1rem 0;"></textarea>
+          <button type="button" class="btn btn-secondary" id="portableCopyClose">關閉</button>
+        </div>`;
+        document.body.appendChild(overlay);
+        document.getElementById('portableCopyClose').onclick = () => {
+          overlay.classList.remove('open');
+          if (overlay.returnFocus && overlay.returnFocus.focus) overlay.returnFocus.focus();
+        };
+        overlay.addEventListener('keydown', event => {
+          if (event.key === 'Escape') document.getElementById('portableCopyClose').click();
+          if (event.key === 'Tab') {
+            event.preventDefault();
+            const content = document.getElementById('portableCopyText');
+            const close = document.getElementById('portableCopyClose');
+            (document.activeElement === content ? close : content).focus();
+          }
+        });
+      }
+      overlay.returnFocus = active;
+      const content = document.getElementById('portableCopyText');
+      content.value = text;
+      overlay.classList.add('open');
+      content.focus();
+      content.select();
+    }
+
+    function copyXmlToClipboard() {
+      const xml = generateXmlString();
+      return copyTextPortable(xml, "XML 代碼已複製至剪貼簿！");
+    }
+
+    function handleImportXml(event) {
+      const file = event.target.files[0];
+      if (file) parseAndLoadXml(file);
+    }
+
+    function parseAndLoadXml(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const doc = new DOMParser().parseFromString(e.target.result, 'text/xml');
+          if (doc.querySelector('parsererror')) throw new Error('XML 格式不完整或含有語法錯誤');
+          const stackup = Array.from(doc.getElementsByTagNameNS('*', 'Stackup'))[0];
+          if (!stackup) throw new Error('缺少 Stackup 根標籤');
+          const child = (node, name) => Array.from(node.children).find(n => n.localName === name);
+          const children = (node, name) => Array.from(node?.children || []).filter(n => n.localName === name);
+          const layerGroup = child(stackup, 'Layers');
+          const incoming = children(layerGroup, 'Layer');
+          if (!incoming.length) throw new Error('XML 沒有可匯入的疊層');
+          const rawUnit = layerGroup.getAttribute('LengthUnit') || stackup.getAttribute('LengthUnit') || 'mm';
+          const units = { mm: ['mm', 1], mil: ['mil', 1], meter: ['mm', 1000], m: ['mm', 1000] };
+          if (!Object.hasOwn(units, rawUnit)) throw new Error(`不支援單位 ${rawUnit}，原資料未變更`);
+          const [nextUnit, scale] = units[rawUnit];
+          const nextMaterials = Object.assign(Object.create(null), materials);
+          const materialNames = new Set();
+          for (const node of children(child(stackup, 'Materials'), 'Material')) {
+            const name = node.getAttribute('Name');
+            if (!name || materialNames.has(name)) throw new Error('材質缺少名稱或名稱重複');
+            materialNames.add(name);
+            const supported = ['Conductivity', 'Permittivity', 'DielectricLossTangent'];
+            if (Array.from(node.attributes).some(a => a.name !== 'Name' && !a.name.startsWith('xmlns')) || Array.from(node.children).some(n => !supported.includes(n.localName))) {
+              throw new Error(`材質 ${name} 含尚未支援的進階屬性；為避免遺失資料，匯入已取消`);
+            }
+            const material = { name };
+            for (const [key, tag] of [['conductivity', 'Conductivity'], ['permittivity', 'Permittivity'], ['lossTangent', 'DielectricLossTangent']]) {
+              const property = child(node, tag);
+              if (!property) continue;
+              const doubles = children(property, 'Double');
+              if (children(node, tag).length !== 1 || Array.from(property.attributes).some(a => a.name !== 'Value' && !a.name.startsWith('xmlns')) || Array.from(property.children).some(n => n.localName !== 'Double') || doubles.length > 1 || (property.hasAttribute('Value') && doubles.length) || doubles.some(n => n.children.length || Array.from(n.attributes).some(a => !a.name.startsWith('xmlns')))) {
+                throw new Error(`材質 ${name} 的 ${tag} 含尚未支援或重複的設定；匯入已取消`);
+              }
+              const raw = property.hasAttribute('Value') ? property.getAttribute('Value') : child(property, 'Double')?.textContent;
+              const value = Number(raw);
+              if (raw == null || !String(raw).trim() || !Number.isFinite(value) || value < 0) throw new Error(`材質 ${name} 的 ${tag} 無效`);
+              material[key] = value;
+            }
+            nextMaterials[name] = material;
+          }
+          const names = new Set();
+          const nextLayers = incoming.map(node => {
+            const name = node.getAttribute('Name');
+            const type = node.getAttribute('Type');
+            const material = node.getAttribute('Material');
+            const raw = node.getAttribute('Thickness');
+            const thickness = Number(raw) * scale;
+            if (!['conductor', 'dielectric'].includes(type)) throw new Error(`目前僅支援實體金屬與介質層；${name || '未命名'} 的 ${type} 類型未匯入，原資料未變更`);
+            if (!name || names.has(name) || !material || raw == null || !raw.trim() || !Number.isFinite(thickness) || thickness < 0) throw new Error('層名稱、材料或厚度無效，或名稱重複；原資料未變更');
+            names.add(name);
+            if (!Object.hasOwn(nextMaterials, material)) nextMaterials[material] = { name: material };
+            const role = /soldermask|mask/i.test(name) ? 'soldermask' : type === 'dielectric' ? 'dielectric' : /gnd|pwr|vcc/i.test(name) ? 'plane' : 'signal';
+            const layer = { name, type, material, thickness, role };
+            const fill = node.getAttribute('FillMaterial');
+            if (type === 'conductor' && fill) {
+              if (!Object.hasOwn(nextMaterials, fill)) nextMaterials[fill] = { name: fill };
+              if (nextMaterials[fill].conductivity) throw new Error(`填充材料 ${fill} 具有導電率，請核對來源`);
+              layer.fillMaterial = fill;
+            }
+            const extra = Array.from(node.attributes).filter(a => !['Name', 'Type', 'Material', 'Thickness', 'FillMaterial'].includes(a.name) && !a.name.startsWith('xmlns'));
+            if (extra.length || node.children.length) throw new Error(`層 ${name} 含本工具尚未支援的屬性或粗糙度等設定；為避免遺失資料，匯入已取消`);
+            return layer;
+          });
+          for (const node of stackup.childNodes) {
+            if (node.nodeType !== 8 || !node.data.trim().startsWith('SIwaveStackupStudio ')) continue;
+            try {
+              const display = JSON.parse(node.data.trim().slice('SIwaveStackupStudio '.length));
+              nextLayers.forEach((layer, i) => {
+                if (/^#[0-9a-f]{6}$/i.test(display.colors?.[i] || '')) layer.color = display.colors[i];
+                if (['signal', 'plane', 'dielectric', 'soldermask'].includes(display.roles?.[i])) layer.role = display.roles[i];
+              });
+            } catch { /* Display metadata is optional; physical data stays valid. */ }
+          }
+          const count = nextLayers.filter(l => l.type === 'conductor').length;
+          if (layers.length && !confirm(`匯入將以 ${count} 個銅層／${nextLayers.length} 列結構取代目前疊層。建議先匯出 XML。是否繼續？`)) return;
+          materials = nextMaterials;
+          layers = nextLayers;
+          unit = nextUnit;
+          layerCountUndo = null;
+          document.getElementById('lengthUnit').value = unit;
+          render();
+          showToast(`成功匯入 ${file.name} (${layers.length} 層)！`);
+        } catch (err) {
+          alert('解析 XML 失敗：' + err.message);
+        }
+      };
+      reader.onerror = () => alert('讀取 XML 失敗，原資料未變更。');
+      reader.readAsText(file);
+    }
+
+    // Modal Helpers
+    function openAddMaterialModal() {
+      document.getElementById('addMaterialModal').classList.add('open');
+    }
+    function closeAddMaterialModal() {
+      document.getElementById('addMaterialModal').classList.remove('open');
+    }
+    function saveNewMaterial() {
+      const name = document.getElementById('newMatName').value.trim();
+      if (!name) {
+        alert("請輸入材質名稱！");
+        return;
+      }
+      const perm = parseFloat(document.getElementById('newMatPerm').value);
+      const loss = parseFloat(document.getElementById('newMatLoss').value);
+      const condVal = document.getElementById('newMatCond').value.trim();
+      const cond = condVal ? parseFloat(condVal) : undefined;
+      if (cond > 0 && [...layers, ...(layerCountUndo?.layers || [])].some(layer => layer.fillMaterial === name)) {
+        alert('目前或可復原的疊層正在使用此 Dielectric Fill，不能改為導電材質；請另建材質名稱。'); return;
+      }
+      if ([perm, loss, cond].some(v => v !== undefined && !Number.isNaN(v) && (!Number.isFinite(v) || v < 0)) || (condVal && !Number.isFinite(cond))) {
+        alert('材質數值須為大於或等於 0 的有限數值。'); return;
+      }
+      if (Object.hasOwn(materials, name) && !confirm('同名材質已存在，更新後會影響所有使用此材質的層。是否繼續？')) return;
+
+      materials[name] = {
+        name,
+        permittivity: isNaN(perm) ? undefined : perm,
+        lossTangent: isNaN(loss) ? undefined : loss,
+        conductivity: cond
+      };
+
+      closeAddMaterialModal();
+      render();
+      showToast(`已成功新增材質 ${name}！`);
+    }
+
+    function openHelpModal() {
+      document.getElementById('helpModal').classList.add('open');
+    }
+    function closeHelpModal() {
+      document.getElementById('helpModal').classList.remove('open');
+    }
+
+    // SOP Modal Functions
+    function openSopModal() {
+      document.getElementById('sopModal').classList.add('open');
+    }
+    function closeSopModal() {
+      document.getElementById('sopModal').classList.remove('open');
+    }
+    function openSopModalStep(stepNum) {
+      openSopModal();
+      setTimeout(() => {
+        const el = document.getElementById(`sop-card-${stepNum}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.borderColor = 'var(--accent-gold)';
+          setTimeout(() => { el.style.borderColor = 'var(--border-color)'; }, 1500);
+        }
+      }, 200);
+    }
+
+    function updateSopProgress() {
+      let count = 0;
+      for (let i = 1; i <= 6; i++) {
+        if (document.getElementById(`chk_${i}`)?.checked) count++;
+      }
+      const pct = Math.round((count / 6) * 100);
+      document.getElementById('sopProgressText').textContent = `${count} / 6 完成 (${pct}%)`;
+    }
+
+    function copySopReport() {
+      let report = `=======================================================\n`;
+      report += `  Ansys SIwave 模擬準備就緒檢查清單 (Simulation Checklist)\n`;
+      report += `=======================================================\n\n`;
+      const items = [
+        "1. 疊層與板材 (Stackup & Materials)：XML 疊層、金屬厚度、Dk/Df、防焊層已指派",
+        "2. Net 網路分類 (Net Classification)：Signal/Power/GND 劃分明確，Power 設有 DC 電壓",
+        "3. 元件特性指派 (Components)：去耦電容 RLC / S 參數、0 歐姆跳線電阻已定義",
+        "4. 版圖與粗糙度 (DRC & Roughness)：Verify Layout 無短斷路，高頻已開 Huray 粗糙度",
+        "5. 端口與激勵 (Ports & Reference)：Circuit Ports 負端已連接最近之連續接地參考面",
+        "6. 求解器配置 (Solvers)：DC IR Drop / SYZ 頻率掃描點與收斂精度已設定"
+      ];
+      items.forEach((item, idx) => {
+        const isChecked = document.getElementById(`chk_${idx+1}`)?.checked;
+        report += `[${isChecked ? 'V' : ' '}] ${item}\n`;
+      });
+      report += `\n產出日期：${new Date().toLocaleString()}\n`;
+
+      return copyTextPortable(report, "已複製 SOP 檢查清單報告至剪貼簿！");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // Drag and Drop support
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById('dropZone');
+      window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.display = 'flex';
+      });
+      window.addEventListener('dragleave', (e) => {
+        if (e.clientX <= 0 || e.clientY <= 0) {
+          dropZone.style.display = 'none';
+        }
+      });
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.display = 'none';
+        if (e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.name.endsWith('.xml')) {
+            parseAndLoadXml(file);
+          } else {
+            alert('請拖放 .xml 格式的 SIwave Stackup 檔案！');
+          }
+        }
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
